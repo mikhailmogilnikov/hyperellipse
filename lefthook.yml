@@ -10,3 +10,7 @@ pre-commit:
         - "**/*.jsonc"
         - "**/*.css"
       stage_fixed: true
+
+commit-msg:
+  jobs:
+    - run: bun x commitlint --edit {1}
