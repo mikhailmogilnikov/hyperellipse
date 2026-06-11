@@ -1,7 +1,7 @@
 /**
- * Геометрия суперэллипса по алгоритму из css-borders-4 (§3.9.4):
- * кривая угла параметризуется как x = T^K, y = (1 - T)^K, где K = 0.5^|s|,
- * s — параметр superellipse() (squircle = 2, round = 1, bevel = 0,
+ * Superellipse corner geometry per css-borders-4 (§3.9.4).
+ * Each corner arc is parameterized as x = T^K, y = (1 - T)^K where K = 0.5^|s|,
+ * and s is the `superellipse()` argument (squircle = 2, round = 1, bevel = 0,
  * scoop = -1, notch = -Infinity, square = Infinity).
  */
 
@@ -11,10 +11,10 @@ const MIN_CORNER_SEGMENTS = 4;
 const MAX_CORNER_SEGMENTS = 26;
 const SEGMENTS_PER_PIXEL = 0.4;
 
-/** Параметр суперэллипса s (допускает ±Infinity). */
+/** Superellipse parameter s (accepts ±Infinity). */
 export type CornerShapeParam = number;
 
-/** [topLeft, topRight, bottomRight, bottomLeft] */
+/** Corner shapes in clockwise order: [topLeft, topRight, bottomRight, bottomLeft]. */
 export type CornerShapeList = [
   CornerShapeParam,
   CornerShapeParam,
@@ -35,6 +35,7 @@ export type ResolvedCorners = [
   ResolvedCorner,
 ];
 
+/** Axis-aligned rectangle in local coordinates. */
 export interface ShapeBox {
   height: number;
   width: number;
@@ -50,7 +51,7 @@ interface Point {
 const fmt = (value: number): string =>
   String(Math.round(value * COORD_PRECISION) / COORD_PRECISION);
 
-/** Кластеризует сэмплы у концов дуги, где сосредоточена кривизна. */
+/** Cosine spacing — clusters samples near arc endpoints where curvature is highest. */
 const cosineSpaced = (t: number): number => (1 - Math.cos(Math.PI * t)) * HALF;
 
 const segmentCount = (corner: ResolvedCorner): number => {
@@ -64,14 +65,16 @@ const segmentCount = (corner: ResolvedCorner): number => {
   );
 };
 
+/** Inner corner center for convex arcs (reflection of outer corner across the chord). */
 const innerCenter = (start: Point, end: Point, outer: Point): Point => ({
   x: start.x + end.x - outer.x,
   y: start.y + end.y - outer.y,
 });
 
 /**
- * Точки дуги одного угла от start к end (по часовой стрелке).
- * start — конец входящего ребра, end — начало исходящего, outer — внешний угол бокса.
+ * Samples one corner arc from `start` to `end` clockwise.
+ * `start` — end of the incoming edge, `end` — start of the outgoing edge,
+ * `outer` — the box corner vertex.
  */
 const cornerPoints = (
   start: Point,
@@ -108,7 +111,7 @@ const cornerPoints = (
   return points;
 };
 
-/** SVG path данных бокса с фигурными углами. */
+/** Builds an SVG path `d` attribute for a shaped box. */
 export const buildShapePath = (
   box: ShapeBox,
   corners: ResolvedCorners
@@ -159,8 +162,8 @@ export const buildShapePath = (
 };
 
 /**
- * Смещает радиусы внутрь/наружу (delta < 0 — внутрь для inner-обводки,
- * delta > 0 — наружу для outline). Нулевые радиусы остаются острыми.
+ * Offsets corner radii inward/outward. `delta < 0` — inset (inner stroke path),
+ * `delta > 0` — outset (outline). Zero radii stay sharp.
  */
 export const offsetCorners = (
   corners: ResolvedCorners,

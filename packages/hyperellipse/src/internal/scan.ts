@@ -1,19 +1,20 @@
 /**
- * Сканирование CSSOM: в браузерах без corner-shape само свойство
- * выбрасывается парсером, поэтому селекторы элементов находим по
- * кастомному свойству `--corner-shape`, которое доживает до CSSOM.
+ * CSSOM scanner. Browsers without `corner-shape` discard the native property
+ * during parsing, so element selectors are discovered via the custom property
+ * `--corner-shape`, which survives in the stylesheet object model.
  */
 
 export const CORNER_SHAPE_VAR = "--corner-shape";
 
 /**
- * Глобальный множитель радиуса для SSR-фоллбека: пользователь пишет
- * `border-radius: calc(45px * var(--corner-scale, 1))` и активирует
- * `--corner-scale: 0.6` на :root через `@supports not (corner-shape: ...)`.
+ * Global radius multiplier for the SSR CSS fallback. Authors write
+ * `border-radius: calc(45px * var(--corner-scale, 1))` and activate
+ * `--corner-scale: 0.6` on `:root` via `@supports not (corner-shape: ...)`.
+ * See `hyperellipse/css` and the README for the full snippet.
  */
 export const CORNER_SCALE_VAR = "--corner-scale";
 
-// Только longhands: shorthand border-radius в CSSOM всегда развёрнут в них.
+// Longhands only — the `border-radius` shorthand is always expanded in CSSOM.
 const RADIUS_PROPS = [
   "border-top-left-radius",
   "border-top-right-radius",
@@ -22,7 +23,7 @@ const RADIUS_PROPS = [
 ] as const;
 
 export interface PendingRadiusRule {
-  /** Цепочка обёрток вида "@media (...)", "@supports (...)". */
+  /** Wrapper chain, e.g. `@media (...)`, `@supports (...)`. */
   conditions: string[];
   declarations: [string, string][];
   selector: string;
@@ -46,7 +47,7 @@ const readRules = (sheet: CSSStyleSheet | null): CSSRuleList | null => {
   try {
     return sheet.cssRules;
   } catch {
-    // Cross-origin стайлшит — пропускаем (есть option.selector как escape hatch).
+    // Cross-origin stylesheet — skip (use `options.selector` as escape hatch).
     return null;
   }
 };
@@ -90,8 +91,8 @@ const collectEntries = (
       );
       continue;
     }
-    // @layer и прочие группирующие правила: спускаемся без обёртки —
-    // наш pending-шит не слоёный и выигрывает каскад у слоёных правил.
+    // @layer and other grouping rules: descend without wrapping — our pending
+    // sheet is unlayered and wins the cascade over layered author rules.
     const grouping = rule as Partial<CSSGroupingRule>;
     if (grouping.cssRules) {
       collectEntries(grouping.cssRules, conditions, entries);
@@ -113,8 +114,8 @@ const collectRadiusDeclarations = (
 };
 
 /**
- * Находит селекторы правил с `--corner-shape` и декларации радиусов
- * (из этих же или других правил с теми же селекторами) для pending-редукции.
+ * Finds selectors of rules declaring `--corner-shape` and collects radius
+ * declarations from matching rules (same selector) for automatic pending reduction.
  */
 export const scanDocument = (doc: Document): ScanResult => {
   const entries: RuleEntry[] = [];

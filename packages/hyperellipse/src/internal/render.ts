@@ -17,9 +17,10 @@ import {
 } from "./parse";
 import { CORNER_SHAPE_VAR } from "./scan";
 
+/** Native `round` — no fallback needed when all corners use this shape. */
 const ROUND_SHAPE = 1;
 const HALF = 0.5;
-/** box-shadow blur radius = 2 × stdDeviation гауссова блюра (CSS spec). */
+/** CSS box-shadow blur radius = 2 × Gaussian `stdDeviation` (per spec). */
 const BLUR_STD_DEV_RATIO = 0.5;
 
 const RADIUS_LONGHANDS = [
@@ -52,6 +53,7 @@ export interface SourceBackground {
   size: string;
 }
 
+/** Snapshot of author styles read before applying fallback overrides. */
 export interface SourceStyles {
   background: SourceBackground;
   border: SourceBorder;
@@ -99,7 +101,7 @@ const readShapes = (
   if (!shapes) {
     return null;
   }
-  // Все углы round → нативный border-radius справится сам.
+  // All corners `round` — native `border-radius` is sufficient.
   if (shapes.every((shape) => shape === ROUND_SHAPE)) {
     return null;
   }
@@ -107,8 +109,8 @@ const readShapes = (
 };
 
 /**
- * Читает исходные (не перезаписанные нами) computed-стили элемента.
- * Вызывается только после снятия собственных инлайн-свойств.
+ * Reads original (not yet overridden) computed styles for an element.
+ * Must be called only after our own inline properties have been cleared.
  */
 export const readSource = (element: Element): SourceStyles | null => {
   const view = element.ownerDocument.defaultView;
@@ -144,7 +146,7 @@ export const readSource = (element: Element): SourceStyles | null => {
 };
 
 export interface RenderTarget {
-  /** Токены атрибута data-hyperellipse-host ("", "layer", "layer outline"). */
+  /** `data-hyperellipse-host` tokens: `""`, `"layer"`, `"layer outline"`. */
   hostAttr: string;
   key: string;
   styles: Record<string, string>;
@@ -161,7 +163,7 @@ const svgDataUri = (width: number, height: number, body: string): string => {
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 };
 
-/** Кольцо бордера: stroke по центральной линии, внутри бокса width×height. */
+/** Border ring: stroke centered on the path, inside a `width×height` box. */
 const ringPathMarkup = (
   x: number,
   y: number,
@@ -218,6 +220,7 @@ const buildOutlineSvg = (
   return { image: svgDataUri(canvasWidth, canvasHeight, body), extent };
 };
 
+/** Per-side padding for the shadow canvas (blur + spread + offset). */
 interface ShadowMargins {
   bottom: number;
   left: number;
@@ -260,7 +263,7 @@ const shadowMarkup = (
   if (shadow.blur <= 0) {
     return { def: "", body: `<path d="${path}" fill="${shadow.color}"/>` };
   }
-  // Явный filter region на весь канвас — иначе дефолтные 110% обрезают блюр.
+  // Explicit filter region over the full canvas — default 110% clips the blur.
   const id = `b${index}`;
   const def = `<filter id="${id}" filterUnits="userSpaceOnUse" x="0" y="0" width="${canvasWidth}" height="${canvasHeight}"><feGaussianBlur stdDeviation="${shadow.blur * BLUR_STD_DEV_RATIO}"/></filter>`;
   const body = `<path d="${path}" fill="${shadow.color}" filter="url(#${id})"/>`;
@@ -269,14 +272,14 @@ const shadowMarkup = (
 
 interface LayerSvg {
   image: string;
-  /** Значение для inset псевдоэлемента: отрицательные поля под тени. */
+  /** `inset` value for the `::before` pseudo: negative margins for shadow bleed. */
   inset: string;
 }
 
 /**
- * Единый SVG-слой для ::before: тени (честный гауссов блюр + spread,
- * запечённые в статичную векторную картинку — без живого CSS-фильтра,
- * который Safari обрезает и пересчитывает при зуме), заливка и бордер.
+ * Single SVG layer for `::before`: shadows (exact Gaussian blur + spread,
+ * baked into a static vector image — no live CSS filter that Safari clips and
+ * recomputes on zoom), fill, and border stroke.
  */
 const buildLayerSvg = (
   width: number,
@@ -290,7 +293,7 @@ const buildLayerSvg = (
   const defs: string[] = [];
   const body: string[] = [];
 
-  // box-shadow рисуется первая-сверху, поэтому в SVG идём с конца списка.
+  // First shadow in the list paints on top — iterate in reverse for SVG paint order.
   for (let i = source.shadows.length - 1; i >= 0; i -= 1) {
     const shadow = source.shadows[i];
     if (!shadow) {
@@ -342,7 +345,7 @@ const buildLayerSvg = (
 
 type BackgroundLayers = Record<string, string>;
 
-/** Кладёт наш SVG-слой поверх существующих background-слоёв элемента. */
+/** Prepends our SVG layer above the element's existing `background-image` layers. */
 const composeBackground = (
   background: SourceBackground,
   layer: string
@@ -370,6 +373,7 @@ const composeBackground = (
   };
 };
 
+/** Clip mode: `clip-path` on the element; optional border as top background layer. */
 const computeClipTarget = (
   source: SourceStyles,
   width: number,
@@ -396,9 +400,9 @@ const computeClipTarget = (
 };
 
 /**
- * Layer-режим (тень/аутлайн): фон, бордер и тени рисуются единым SVG
- * на ::before (z-index: -1), аутлайн — на ::after. Элемент изолируется
- * через isolation: isolate, чтобы псевдослой не ушёл под предков.
+ * Layer mode (shadow and/or outline): background, border, and shadows are
+ * painted by one SVG on `::before` (`z-index: -1`); outline on `::after`.
+ * `isolation: isolate` keeps the pseudo-layer from painting behind ancestors.
  */
 const computeLayerTarget = (
   source: SourceStyles,
@@ -445,7 +449,7 @@ const computeLayerTarget = (
   };
 };
 
-/** Чистая функция: исходные стили + размер → целевые инлайн-стили. */
+/** Pure function: source styles + box size → target inline styles. */
 export const computeTarget = (
   source: SourceStyles,
   width: number,
@@ -458,7 +462,7 @@ export const computeTarget = (
     shape: source.shapes[index] ?? ROUND_SHAPE,
   })) as ResolvedCorners;
 
-  // Все радиусы нулевые → углы острые при любой форме, фоллбек не нужен.
+  // All radii zero — corners are sharp regardless of shape; skip fallback.
   if (corners.every((corner) => corner.rx <= 0 || corner.ry <= 0)) {
     return CLEAR_TARGET;
   }
@@ -469,8 +473,9 @@ export const computeTarget = (
     : computeClipTarget(source, width, height, corners);
 };
 
-/** Базовый CSS псевдоэлементов: ::before — фон/бордер/тени, ::after — outline. */
+/** Base CSS for pseudo-elements: `::before` — fill/border/shadows, `::after` — outline. */
 export const PSEUDO_BASE_CSS = `[data-hyperellipse-host~="layer"]::before{content:"";position:absolute;inset:var(--hyperellipse-layer-inset,0);z-index:-1;background-image:var(--hyperellipse-layer-image,none);background-size:100% 100%;background-repeat:no-repeat;background-origin:border-box;pointer-events:none;}
 [data-hyperellipse-host~="outline"]::after{content:"";position:absolute;inset:var(--hyperellipse-outline-inset,0);background-image:var(--hyperellipse-outline-image,none);background-size:100% 100%;background-repeat:no-repeat;background-origin:border-box;pointer-events:none;}`;
 
+/** Attribute toggled on elements under fallback control. */
 export const HOST_ATTR = "data-hyperellipse-host";

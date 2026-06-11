@@ -2,11 +2,11 @@ import { splitTopLevel } from "./parse";
 import { CORNER_SCALE_VAR, type PendingRadiusRule } from "./scan";
 
 /**
- * Pending-редукция: пока фоллбек не применил clip-path, элементы
- * показываются с уменьшенным border-radius — сквиркл визуально
- * скругляется слабее круга, так «прыжок» формы куда менее заметен.
- * После применения инлайновый `border-radius: 0` элемента
- * перекрывает это правило.
+ * Automatic pending radius reduction (secondary to the CSS `--corner-scale`
+ * snippet). Until the fallback applies `clip-path`, matched elements show a
+ * scaled-down `border-radius` — squircles visually round less than circles, so
+ * the shape jump is softer. Per-element `border-radius: 0` overrides this once
+ * applied. Only runs after JS loads; does not cover the SSR-to-bundle gap.
  */
 
 const WHITESPACE_PATTERN = /\s+/;
@@ -37,7 +37,7 @@ export const buildPendingCss = (
 ): string => {
   const chunks: string[] = [];
   for (const rule of rules) {
-    // Радиусы на var(--corner-scale) уже уменьшены чистым CSS — не дублируем.
+    // Radii already scaled via `var(--corner-scale)` in author CSS — skip.
     const declarations = rule.declarations
       .filter(([, value]) => !value.includes(CORNER_SCALE_VAR))
       .map(([prop, value]) => `${prop}:${scaleRadiusValue(value, scale)};`)
@@ -52,13 +52,14 @@ export const buildPendingCss = (
 };
 
 export interface ManagedSheet {
-  /** Переносит шит в конец head, чтобы выигрывать у позже добавленных стилей. */
+  /** Moves the sheet to the end of `<head>` so it wins over later-added styles. */
   bump: () => void;
   remove: () => void;
   setDisabled: (disabled: boolean) => void;
   update: (css: string) => void;
 }
 
+/** Creates an injectable `<style data-hyperellipse="…">` managed by the engine. */
 export const createManagedSheet = (
   doc: Document,
   marker: string

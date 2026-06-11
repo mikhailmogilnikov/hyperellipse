@@ -20,13 +20,14 @@ export interface Engine {
   refresh: () => void;
 }
 
+/** Default discovery selectors beyond CSSOM-scanned rules. */
 const BASE_SELECTORS = ["[data-corner-shape]", '[style*="--corner-shape"]'];
 
 interface Entry {
   hostAttr: string;
   key: string;
   owned: string[];
-  /** Снимок style-атрибута после нашей записи — отличает свои мутации от чужих. */
+  /** Snapshot of the `style` attribute after our write — distinguishes our mutations from author/React updates. */
   snapshot: string;
   source: SourceStyles | null;
 }
@@ -52,6 +53,10 @@ const isStyleNode = (node: Node): boolean =>
   node instanceof Element &&
   (node.tagName === "STYLE" || node.tagName === "LINK");
 
+/**
+ * Fallback engine: discovers elements, observes DOM/size changes, batches
+ * read/write phases per animation frame, and applies inline fallback styles.
+ */
 export const createEngine = (doc: Document, options: EngineOptions): Engine => {
   const entries = new WeakMap<HTMLElement, Entry>();
   const tracked = new Set<HTMLElement>();
@@ -67,9 +72,9 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
   const pendingSheet = createManagedSheet(doc, "pending");
   const baseSheet = createManagedSheet(doc, "base");
   baseSheet.update(PSEUDO_BASE_CSS);
-  // Включается только на фазу чтения: нейтрализует SSR-редукцию радиуса
-  // (--corner-scale из @supports-сниппета), чтобы геометрия считалась
-  // от полного радиуса. !important перебивает и скоуповые объявления.
+  // Enabled only during the read phase: neutralizes SSR radius reduction
+  // (`--corner-scale` from the `@supports` snippet) so geometry uses the
+  // full radius. `!important` also wins over scoped declarations on ancestors.
   const readSheet = createManagedSheet(doc, "read");
   readSheet.update(`*{${CORNER_SCALE_VAR}:1 !important;}`);
   readSheet.setDisabled(true);
@@ -80,6 +85,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       if (element instanceof HTMLElement && tracked.has(element)) {
         const entry = entries.get(element);
         if (entry?.source) {
+          // Size-only change — reuse cached source, skip getComputedStyle.
           resized.add(element);
         } else {
           dirty.add(element);
@@ -209,8 +215,8 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
   };
 
   /**
-   * Снимает свои инлайн-стили и перечитывает исходные computed-значения
-   * с временно отключённым pending-шитом (чтобы получить полный радиус).
+   * Clears our inline overrides and re-reads original computed values with the
+   * pending sheet disabled (so the full radius is visible, not the reduced one).
    */
   const readDirtySources = (dirtyList: HTMLElement[]): void => {
     if (dirtyList.length === 0) {
@@ -258,9 +264,8 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
   };
 
   /**
-   * Фазы flush: снять свои стили с dirty-элементов и отключить
-   * pending-шит (чтение оригинальных значений) → все чтения →
-   * вернуть шит → все записи. Layout дёргается дважды за батч, не чаще.
+   * Flush phases: clear dirty elements + disable pending sheet → all reads →
+   * re-enable sheets → all writes. Layout is touched at most twice per batch.
    */
   const flush = (): void => {
     flushScheduled = false;
@@ -331,7 +336,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       return;
     }
     if (element === doc.documentElement || element === doc.body) {
-      // Смена темы (class/data-атрибут на корне) — цвета могли поменяться.
+      // Root class/data change (theme toggle) — colors may have changed.
       refreshAll();
       return;
     }
@@ -341,14 +346,14 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
         record.attributeName === "style" &&
         (element.getAttribute("style") ?? "") === entry?.snapshot
       ) {
-        // Наша собственная запись — игнорируем.
+        // Our own style write — ignore to avoid feedback loops.
         return;
       }
       markDirty(element);
     } else if (element.matches(selectorString)) {
       track(element);
     }
-    // Класс/стиль контейнера мог изменить кастомные свойства потомков.
+    // Container class/style may have changed inherited custom properties on descendants.
     for (const descendant of element.querySelectorAll(selectorString)) {
       if (descendant instanceof HTMLElement && tracked.has(descendant)) {
         markDirty(descendant);

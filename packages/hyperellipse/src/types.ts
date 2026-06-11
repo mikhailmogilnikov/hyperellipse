@@ -1,29 +1,31 @@
 export interface HyperellipseOptions {
   /**
-   * Принудительно включить фоллбек даже при нативной поддержке
-   * corner-shape (для отладки и визуального сравнения).
+   * Force the JS fallback even when the browser supports native
+   * `corner-shape` (useful for debugging and visual comparison).
    */
   force?: boolean;
   /**
-   * Множитель border-radius на время, пока фоллбек не применён
-   * (сквиркл визуально скругляется слабее круга с тем же радиусом).
-   * 0..1, по умолчанию 0.6.
+   * `border-radius` multiplier applied by the automatic pending stylesheet
+   * until per-element fallback styles are written. Squircles visually round
+   * less than circles at the same radius, so a reduced radius softens the
+   * shape jump. Range 0..1, default `0.6`. Prefer the CSS `--corner-scale`
+   * snippet for SSR; this only helps after JS loads.
    */
   pendingRadiusScale?: number;
   /**
-   * Дополнительные селекторы элементов с corner-shape — escape hatch
-   * для cross-origin стайлшитов, которые нельзя просканировать.
+   * Extra selectors for elements that use corner shapes — escape hatch for
+   * cross-origin stylesheets that cannot be scanned via CSSOM.
    */
   selector?: string;
 }
 
 export interface HyperellipseController {
-  /** JS-фоллбек активен (браузер без поддержки или force). */
+  /** Whether the JS fallback engine is running (unsupported browser or `force`). */
   readonly active: boolean;
-  /** Остановить фоллбек и снять все применённые стили. */
+  /** Stop the fallback and remove all applied inline styles and attributes. */
   destroy: () => void;
-  /** Пересканировать стайлшиты и пересчитать все элементы. */
+  /** Rescan stylesheets and recompute every tracked element. */
   refresh: () => void;
-  /** Браузер поддерживает corner-shape нативно. */
+  /** Whether the browser supports native `corner-shape`. */
   readonly supported: boolean;
 }

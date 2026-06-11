@@ -1,5 +1,6 @@
 import type { CornerShapeList, CornerShapeParam } from "./geometry";
 
+/** Maps `corner-shape` keywords to their `superellipse()` parameter. */
 const SHAPE_KEYWORDS: Record<string, CornerShapeParam> = {
   round: 1,
   squircle: 2,
@@ -26,6 +27,7 @@ const parseSuperellipseArg = (raw: string): CornerShapeParam => {
   return Number.parseFloat(raw);
 };
 
+/** Expands 1–4 shape values using the same shorthand rules as `corner-shape`. */
 const expandShapes = (values: CornerShapeParam[]): CornerShapeList | null => {
   const [a, b, c, d] = values;
   if (a === undefined) {
@@ -44,8 +46,8 @@ const expandShapes = (values: CornerShapeParam[]): CornerShapeList | null => {
 };
 
 /**
- * Парсит значение `--corner-shape` (1–4 значения, как у нативного шортхенда):
- * ключевые слова или superellipse(K).
+ * Parses a `--corner-shape` value (1–4 values, same shorthand as native):
+ * keywords or `superellipse(K)`.
  */
 export const parseCornerShape = (value: string): CornerShapeList | null => {
   const trimmed = value.trim();
@@ -78,6 +80,7 @@ export interface RadiusComponent {
   value: number;
 }
 
+/** Elliptical corner radius: separate horizontal (x) and vertical (y) components. */
 export interface CornerRadius {
   x: RadiusComponent;
   y: RadiusComponent;
@@ -105,7 +108,7 @@ const parseRadiusComponent = (raw: string | undefined): RadiusComponent => {
   return { value, isPercent: raw.includes("%") };
 };
 
-/** Парсит computed-значение longhand-радиуса: "45px", "10% 20px" и т.п. */
+/** Parses a computed longhand radius: `"45px"`, `"10% 20px"`, etc. */
 export const parseRadiusLonghand = (value: string): CornerRadius => {
   const parts = value.trim().split(WHITESPACE_PATTERN);
   const x = parseRadiusComponent(parts[0]);
@@ -122,8 +125,8 @@ interface ResolvedRadius {
 }
 
 /**
- * Резолвит проценты против размеров бокса и применяет стандартную
- * нормализацию перекрытия радиусов (CSS overlap constraint).
+ * Resolves percentages against box dimensions and applies the standard
+ * CSS corner-radius overlap constraint (proportional scale-down).
  */
 export const resolveRadii = (
   radii: CornerRadiusList,
@@ -152,7 +155,7 @@ export const resolveRadii = (
   return resolved;
 };
 
-/** Разбивает строку по разделителю на верхнем уровне (вне скобок). */
+/** Splits a value by `separator` at the top level only (outside parentheses). */
 export const splitTopLevel = (value: string, separator: string): string[] => {
   const parts: string[] = [];
   let depth = 0;
@@ -204,7 +207,7 @@ const parseSingleShadow = (raw: string): ParsedShadow | null => {
   };
 };
 
-/** Парсит computed box-shadow; inset-тени отбрасываются (не воспроизводимы). */
+/** Parses computed `box-shadow`; inset shadows are dropped (not reproduced). */
 export const parseBoxShadow = (value: string): ParsedShadow[] => {
   if (!value || value === "none") {
     return [];
@@ -219,7 +222,7 @@ export const parseBoxShadow = (value: string): ParsedShadow[] => {
   return shadows;
 };
 
-/** Размножает список фоновых под-свойств до количества слоёв background-image. */
+/** Repeats a comma-separated background sub-property list to match `background-image` layer count. */
 export const expandLayerList = (value: string, count: number): string[] => {
   const parts = splitTopLevel(value, ",");
   if (parts.length === 0) {
