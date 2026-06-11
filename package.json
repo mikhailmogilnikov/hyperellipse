@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "@biomejs/biome": "2.4.16",
+    "@changesets/cli": "^2.31.0",
     "lefthook": "^2.1.9",
     "turbo": "^2.9.18",
     "typescript": "^6",
@@ -15,7 +16,10 @@
     "check-types": "turbo run check-types",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "bun run build && changeset publish"
   },
   "workspaces": [
     "apps/*",
