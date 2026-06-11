@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@import "hyperellipse/css";
+
+:root {
+  --theme-background: hsl(0, 0%, 95%);
+  --theme-foreground: hsl(0, 0%, 4%);
+  --theme-card: hsl(0, 0%, 100%);
+  --theme-default: hsl(0, 0%, 88%);
+  --theme-border: hsl(0, 0%, 88%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --theme-background: hsl(0, 0%, 0%);
+    --theme-foreground: hsl(0, 0%, 100%);
+    --theme-card: hsl(0, 0%, 5%);
+    --theme-default: hsl(0, 0%, 15%);
+    --theme-border: hsl(0, 0%, 12%);
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-geist);
+
+  --color-background: var(--theme-background);
+  --color-foreground: var(--theme-foreground);
+  --color-card: var(--theme-card);
+  --color-border: var(--theme-border);
+  --color-default: var(--theme-default);
+
+  --corner-radius-xs: 0.25rem;
+  --corner-radius-sm: 0.5rem;
+  --corner-radius-md: 0.75rem;
+  --corner-radius-lg: 1rem;
+  --corner-radius-xl: 1.25rem;
+  --corner-radius-2xl: 1.5rem;
+  --corner-radius-3xl: 2rem;
+  --corner-radius-4xl: 2.5rem;
+}
+
+@utility squircle {
+  corner-shape: squircle;
+  --corner-shape: squircle;
+}
+
+@utility text-gradient {
+  @apply bg-clip-text text-transparent;
+}
+
+@layer components {
+  .squircle {
+    --radius-xs: calc(var(--corner-radius-xs) * var(--corner-scale, 1));
+    --radius-sm: calc(var(--corner-radius-sm) * var(--corner-scale, 1));
+    --radius-md: calc(var(--corner-radius-md) * var(--corner-scale, 1));
+    --radius-lg: calc(var(--corner-radius-lg) * var(--corner-scale, 1));
+    --radius-xl: calc(var(--corner-radius-xl) * var(--corner-scale, 1));
+    --radius-2xl: calc(var(--corner-radius-2xl) * var(--corner-scale, 1));
+    --radius-3xl: calc(var(--corner-radius-3xl) * var(--corner-scale, 1));
+    --radius-4xl: calc(var(--corner-radius-4xl) * var(--corner-scale, 1));
+  }
+}

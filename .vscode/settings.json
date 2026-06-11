@@ -50,5 +50,8 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit",
     "source.organizeImports.biome": "explicit"
+  },
+  "[astro]": {
+    "editor.defaultFormatter": "biomejs.biome"
   }
 }

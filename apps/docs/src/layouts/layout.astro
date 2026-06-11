@@ -1,0 +1,46 @@
+---
+import { Font } from "astro:assets";
+import "../styles/global.css";
+
+interface Props {
+  class?: string;
+  title?: string;
+}
+
+const { title = "Hyperellipse", class: className } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" style="color-scheme: light dark">
+  <head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="light dark" name="color-scheme">
+    <meta
+      content="#ffffff"
+      media="(prefers-color-scheme: light)"
+      name="theme-color"
+    >
+    <meta
+      content="#000000"
+      media="(prefers-color-scheme: dark)"
+      name="theme-color"
+    >
+    <link href="/favicon.svg" rel="icon" type="image/svg+xml">
+    <Font cssVariable="--font-geist" />
+    <title>{title}</title>
+  </head>
+  <body
+    class:list={[
+      "min-h-dvh bg-background text-foreground font-sans antialiased",
+      className,
+    ]}
+  >
+    <slot />
+    <script>
+      import { registerHyperellipse } from "hyperellipse";
+
+      registerHyperellipse();
+    </script>
+  </body>
+</html>

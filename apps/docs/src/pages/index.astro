@@ -1,0 +1,39 @@
+---
+import SquircleDemo from "../components/squircle-demo.astro";
+import SquirclePlaygroundPanels from "../components/squircle-playground-panels.astro";
+import Layout from "../layouts/layout.astro";
+
+const title = "hyperellipse";
+---
+
+<Layout title={title}>
+  <main
+    class="flex min-h-dvh items-center flex-col max-w-xl px-4 mx-auto pt-12 gap-8 tracking-tight"
+  >
+    <header class="flex flex-col gap-8 items-center">
+      <h1
+        class="text-[2.5rem] font-bold text-gradient bg-linear-30 from-foreground to-foreground/60"
+      >
+        {title}
+      </h1>
+      <h2 class="max-w-lg text-center text-lg font-semibold text-balance">
+        <span class="text-foreground/50">Ship</span>
+        <code class="font-mono bg-card px-1 py-0.5 rounded-md"
+          >corner-shape</code
+        >
+        <span class="text-foreground/50">
+          with one CSS API — native where supported, polyfilled everywhere else.
+          Works in all browsers and frameworks.</span
+        >
+      </h2>
+    </header>
+    <section class="flex w-full flex-col gap-4" data-squircle-playground>
+      <div
+        class="card squircle flex h-80 w-full items-center justify-center rounded-3xl bg-card"
+      >
+        <SquircleDemo />
+      </div>
+      <SquirclePlaygroundPanels />
+    </section>
+  </main>
+</Layout>

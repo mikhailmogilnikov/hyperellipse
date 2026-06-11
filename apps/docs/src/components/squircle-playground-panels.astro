@@ -1,0 +1,254 @@
+---
+import ScrubInput from "./scrub-input.astro";
+
+const defaultRadius = 32;
+const defaultBorder = 0;
+const defaultShadow = 0;
+const defaultOutline = 0;
+const defaultOutlineOffset = 0;
+---
+
+<div
+  class="flex w-full gap-4 max-[576px]:flex-col-reverse"
+  data-squircle-panels
+>
+  <div
+    class="flex h-48 w-62 shrink-0 flex-col gap-3 squircle rounded-3xl bg-card p-4"
+  >
+    <span
+      class="text-xs font-semibold tracking-wide text-foreground/50 uppercase"
+      >CSS</span
+    >
+    <pre
+      class="m-0 min-h-0 flex-1 overflow-auto p-0 font-mono text-xs leading-normal whitespace-pre text-foreground/80"
+    ><code data-squircle-css></code></pre>
+  </div>
+
+  <div
+    class="flex min-h-48 min-w-0 grow flex-col gap-3 squircle rounded-3xl bg-card p-4"
+  >
+    <span
+      class="text-xs font-semibold tracking-wide text-foreground/50 uppercase"
+      >Settings</span
+    >
+    <div class="flex flex-col gap-3">
+      <ScrubInput
+        label="Border radius"
+        max={128}
+        min={0}
+        name="radius"
+        step={1}
+        unit="px"
+        value={defaultRadius}
+      />
+      <ScrubInput
+        label="Border"
+        max={16}
+        min={0}
+        name="border"
+        step={1}
+        unit="px"
+        value={defaultBorder}
+      />
+      <ScrubInput
+        label="Shadow"
+        max={32}
+        min={0}
+        name="shadow"
+        step={1}
+        unit="px"
+        value={defaultShadow}
+      />
+      <ScrubInput
+        label="Outline"
+        max={16}
+        min={0}
+        name="outline"
+        step={1}
+        unit="px"
+        value={defaultOutline}
+      />
+      <ScrubInput
+        label="Outline offset"
+        max={32}
+        min={0}
+        name="outline-offset"
+        step={1}
+        unit="px"
+        value={defaultOutlineOffset}
+      />
+    </div>
+  </div>
+</div>
+
+<script>
+  interface PlaygroundState {
+    border: number;
+    outline: number;
+    outlineOffset: number;
+    radius: number;
+    shadow: number;
+  }
+
+  const formatShadow = (shadow: number) =>
+    `0 ${shadow}px ${shadow * 2}px rgb(0 0 0 / 0.25)`;
+
+  const formatCss = ({
+    border,
+    outline,
+    outlineOffset,
+    radius,
+    shadow,
+  }: PlaygroundState) => {
+    const lines = [
+      ".card {",
+      "  --corner-shape: squircle;",
+      `  border-radius: ${radius}px;`,
+    ];
+
+    if (border > 0) {
+      lines.push(`  border: ${border}px solid;`);
+    }
+
+    if (shadow > 0) {
+      lines.push(`  box-shadow: ${formatShadow(shadow)};`);
+    }
+
+    if (outline > 0) {
+      lines.push(`  outline: ${outline}px solid;`);
+    }
+
+    if (outline > 0 && outlineOffset > 0) {
+      lines.push(`  outline-offset: ${outlineOffset}px;`);
+    }
+
+    lines.push("}");
+    return lines.join("\n");
+  };
+
+  const parseCssVar = (block: HTMLElement, name: string, fallback: number) => {
+    const custom = block.style.getPropertyValue(name).trim();
+
+    if (!custom) {
+      return fallback;
+    }
+
+    const parsed = Number.parseFloat(custom);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  const initSquirclePlaygroundPanels = (root: HTMLElement) => {
+    const playground = root.closest("[data-squircle-playground]");
+
+    if (!playground) {
+      return;
+    }
+
+    const block = playground.querySelector<HTMLElement>("[data-demo-block]");
+    const cssOutput = root.querySelector("[data-squircle-css]");
+    const radiusControl = root.querySelector<HTMLElement>(
+      '[data-scrub-input][data-name="radius"]'
+    );
+    const borderControl = root.querySelector<HTMLElement>(
+      '[data-scrub-input][data-name="border"]'
+    );
+    const shadowControl = root.querySelector<HTMLElement>(
+      '[data-scrub-input][data-name="shadow"]'
+    );
+    const outlineControl = root.querySelector<HTMLElement>(
+      '[data-scrub-input][data-name="outline"]'
+    );
+    const outlineOffsetControl = root.querySelector<HTMLElement>(
+      '[data-scrub-input][data-name="outline-offset"]'
+    );
+
+    if (
+      !(
+        block &&
+        cssOutput &&
+        radiusControl &&
+        borderControl &&
+        shadowControl &&
+        outlineControl &&
+        outlineOffsetControl
+      )
+    ) {
+      return;
+    }
+
+    const state: PlaygroundState = {
+      radius: parseCssVar(block, "--radius", 32),
+      border: parseCssVar(block, "--border-width", 0),
+      shadow: parseCssVar(block, "--shadow-size", 0),
+      outline: parseCssVar(block, "--outline-width", 0),
+      outlineOffset: parseCssVar(block, "--outline-offset", 0),
+    };
+
+    const syncControl = (control: HTMLElement, value: number) => {
+      control.dataset.value = String(value);
+      const input =
+        control.querySelector<HTMLInputElement>("[data-scrub-value]");
+
+      if (input) {
+        input.value = String(value);
+      }
+    };
+
+    const render = () => {
+      cssOutput.textContent = formatCss(state);
+    };
+
+    const apply = () => {
+      block.style.setProperty("--radius", `${state.radius}px`);
+      block.style.setProperty("--border-width", `${state.border}px`);
+      block.style.setProperty("--shadow-size", `${state.shadow}px`);
+      block.style.setProperty(
+        "--demo-shadow",
+        state.shadow > 0 ? formatShadow(state.shadow) : "none"
+      );
+      block.style.setProperty("--outline-width", `${state.outline}px`);
+      block.style.setProperty("--outline-offset", `${state.outlineOffset}px`);
+      render();
+    };
+
+    syncControl(radiusControl, state.radius);
+    syncControl(borderControl, state.border);
+    syncControl(shadowControl, state.shadow);
+    syncControl(outlineControl, state.outline);
+    syncControl(outlineOffsetControl, state.outlineOffset);
+    apply();
+
+    radiusControl.addEventListener("scrub-input:change", (event) => {
+      state.radius = (event as CustomEvent<{ value: number }>).detail.value;
+      apply();
+    });
+
+    borderControl.addEventListener("scrub-input:change", (event) => {
+      state.border = (event as CustomEvent<{ value: number }>).detail.value;
+      apply();
+    });
+
+    shadowControl.addEventListener("scrub-input:change", (event) => {
+      state.shadow = (event as CustomEvent<{ value: number }>).detail.value;
+      apply();
+    });
+
+    outlineControl.addEventListener("scrub-input:change", (event) => {
+      state.outline = (event as CustomEvent<{ value: number }>).detail.value;
+      apply();
+    });
+
+    outlineOffsetControl.addEventListener("scrub-input:change", (event) => {
+      state.outlineOffset = (
+        event as CustomEvent<{ value: number }>
+      ).detail.value;
+      apply();
+    });
+  };
+
+  for (const panels of document.querySelectorAll<HTMLElement>(
+    "[data-squircle-panels]"
+  )) {
+    initSquirclePlaygroundPanels(panels);
+  }
+</script>

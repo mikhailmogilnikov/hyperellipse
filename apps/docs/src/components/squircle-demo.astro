@@ -1,0 +1,140 @@
+---
+interface Props {
+  class?: string;
+  defaultHeight?: number;
+  defaultWidth?: number;
+  maxHeight?: number;
+  maxWidth?: number;
+  minHeight?: number;
+  minWidth?: number;
+}
+
+const {
+  class: className,
+  defaultWidth = 200,
+  defaultHeight = 200,
+  minWidth = 96,
+  minHeight = 96,
+  maxWidth = 360,
+  maxHeight = 280,
+} = Astro.props;
+
+const gripClass =
+  "size-11 rotate-180 text-foreground opacity-50 drop-shadow-[0_1px_2px_rgb(0_0_0/0.18)] drop-shadow-[0_4px_10px_rgb(0_0_0/0.22)] transition-[transform,filter] duration-150 group-[.is-dragging]/demo:scale-105 group-[.is-dragging]/demo:opacity-100 group-[.is-dragging]/demo:drop-shadow-[0_2px_4px_rgb(0_0_0/0.24)] group-[.is-dragging]/demo:drop-shadow-[0_8px_18px_rgb(0_0_0/0.32)] group-has-[:focus-visible]/demo:drop-shadow-[0_2px_4px_rgb(0_0_0/0.22)] group-has-[:focus-visible]/demo:drop-shadow-[0_6px_14px_rgb(0_0_0/0.28)]";
+---
+
+<div
+  class:list={["group/demo squircle-demo inline-flex", className]}
+  data-default-height={defaultHeight}
+  data-default-width={defaultWidth}
+  data-max-height={maxHeight}
+  data-max-width={maxWidth}
+  data-min-height={minHeight}
+  data-min-width={minWidth}
+  style={`--demo-width: ${defaultWidth}px; --demo-height: ${defaultHeight}px`}
+>
+  <div class="relative">
+    <div
+      aria-hidden="true"
+      class="squircle h-[var(--demo-height)] w-[var(--demo-width)] rounded-[calc(var(--radius)*var(--corner-scale,1))] border-solid border-foreground outline-solid outline-foreground [border-width:var(--border-width,0px)] [box-shadow:var(--demo-shadow,none)] [outline-width:var(--outline-width,0px)] [outline-offset:var(--outline-offset,0px)] bg-default group-[.is-dragging]/demo:transition-none"
+      data-demo-block
+      style="--radius: 32px; --border-width: 0px; --shadow-size: 0px; --demo-shadow: none; --outline-width: 0px; --outline-offset: 0px"
+    ></div>
+
+    <button
+      aria-label="Resize squircle preview"
+      class="absolute -right-3 -bottom-3 size-11 translate-x-2 translate-y-2 cursor-nwse-resize touch-none border-0 bg-transparent p-0 select-none focus-visible:outline-none"
+      data-demo-handle
+      type="button"
+    >
+      <svg aria-hidden="true" class={gripClass} fill="none" viewBox="0 0 32 32">
+        <path
+          d="M 8 24 C 8 12.5 12.5 8 24 8"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-width="6"
+        ></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  const initSquircleDemo = (root: HTMLElement) => {
+    const handle = root.querySelector<HTMLButtonElement>("[data-demo-handle]");
+
+    if (!handle) {
+      return;
+    }
+
+    const minWidth = Number(root.dataset.minWidth ?? 96);
+    const minHeight = Number(root.dataset.minHeight ?? 96);
+    const maxWidth = Number(root.dataset.maxWidth ?? 360);
+    const maxHeight = Number(root.dataset.maxHeight ?? 280);
+    const defaultWidth = Number(root.dataset.defaultWidth ?? 200);
+    const defaultHeight = Number(root.dataset.defaultHeight ?? 200);
+
+    const clamp = (value: number, min: number, max: number) =>
+      Math.min(max, Math.max(min, value));
+
+    let startX = 0;
+    let startY = 0;
+    let startWidth = defaultWidth;
+    let startHeight = defaultHeight;
+
+    const setSize = (width: number, height: number) => {
+      const nextWidth = clamp(Math.round(width), minWidth, maxWidth);
+      const nextHeight = clamp(Math.round(height), minHeight, maxHeight);
+
+      root.style.setProperty("--demo-width", `${nextWidth}px`);
+      root.style.setProperty("--demo-height", `${nextHeight}px`);
+      root.dispatchEvent(
+        new CustomEvent("squircle-demo:resize", {
+          bubbles: true,
+          detail: { width: nextWidth, height: nextHeight },
+        })
+      );
+    };
+
+    setSize(defaultWidth, defaultHeight);
+
+    const onPointerMove = (event: PointerEvent) => {
+      const deltaX = event.clientX - startX;
+      const deltaY = event.clientY - startY;
+      setSize(startWidth + deltaX, startHeight + deltaY);
+    };
+
+    const stopDragging = () => {
+      root.classList.remove("is-dragging");
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", stopDragging);
+      window.removeEventListener("pointercancel", stopDragging);
+    };
+
+    const startDragging = (event: PointerEvent) => {
+      event.preventDefault();
+      startX = event.clientX;
+      startY = event.clientY;
+      startWidth = Number.parseInt(
+        root.style.getPropertyValue("--demo-width") || String(defaultWidth),
+        10
+      );
+      startHeight = Number.parseInt(
+        root.style.getPropertyValue("--demo-height") || String(defaultHeight),
+        10
+      );
+
+      root.classList.add("is-dragging");
+      handle.setPointerCapture(event.pointerId);
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", stopDragging);
+      window.addEventListener("pointercancel", stopDragging);
+    };
+
+    handle.addEventListener("pointerdown", startDragging);
+  };
+
+  for (const demo of document.querySelectorAll<HTMLElement>(".squircle-demo")) {
+    initSquircleDemo(demo);
+  }
+</script>

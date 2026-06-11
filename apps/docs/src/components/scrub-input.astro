@@ -1,0 +1,201 @@
+---
+import { MoveHorizontal } from "@lucide/astro";
+
+interface Props {
+  class?: string;
+  id?: string;
+  label: string;
+  max?: number;
+  min?: number;
+  name?: string;
+  step?: number;
+  unit?: string;
+  value?: number;
+}
+
+const {
+  class: className,
+  id,
+  label,
+  min = 0,
+  max = 128,
+  name,
+  step = 1,
+  unit = "px",
+  value = 0,
+} = Astro.props;
+
+const fieldClass =
+  "inline-flex h-7 shrink-0 cursor-ew-resize touch-none select-none items-center gap-1 rounded-md border border-foreground/8 bg-foreground/4 py-0 pr-1.5 pl-1.5 transition-[border-color,background-color,box-shadow] duration-150 hover:border-foreground/12 hover:bg-foreground/6 focus-within:cursor-text focus-within:border-[#007aff]/45 focus-within:bg-foreground/5 focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,#007aff_18%,transparent)] group-[.is-scrubbing]/scrub:cursor-ew-resize group-[.is-scrubbing]/scrub:border-[#007aff]/50 group-[.is-scrubbing]/scrub:bg-[#007aff]/8 group-[.is-scrubbing]/scrub:shadow-[0_0_0_3px_color-mix(in_srgb,#007aff_20%,transparent)]";
+---
+
+<div
+  class:list={["group/scrub", className]}
+  data-scrub-input
+  data-max={max}
+  data-min={min}
+  data-name={name}
+  data-step={step}
+  data-unit={unit}
+  data-value={value}
+  id={id}
+>
+  <div class="flex items-center justify-between gap-3">
+    <label
+      class="shrink-0 text-[0.8125rem] font-medium tracking-tight whitespace-nowrap text-foreground/55"
+      >{label}</label
+    >
+    <div class={fieldClass} data-scrub-field>
+      <MoveHorizontal
+        aria-hidden="true"
+        class="pointer-events-none size-3 shrink-0 text-foreground/30 group-hover/scrub:text-foreground/45 group-[.is-scrubbing]/scrub:text-[#007aff]/70"
+        stroke-width={2}
+      />
+      <input
+        aria-label={label}
+        autocomplete="off"
+        class="w-8 cursor-inherit border-0 bg-transparent p-0 text-right text-xs font-medium tracking-tight text-foreground tabular-nums outline-none focus:cursor-text"
+        data-scrub-value
+        inputmode="decimal"
+        spellcheck="false"
+        type="text"
+        value={value}
+      >
+      <span
+        aria-hidden="true"
+        class="pointer-events-none shrink-0 text-[0.6875rem] font-medium tracking-tight text-foreground/35 tabular-nums"
+        >{unit}</span
+      >
+    </div>
+  </div>
+</div>
+
+<script>
+  const initScrubInput = (root: HTMLElement) => {
+    const field = root.querySelector<HTMLElement>("[data-scrub-field]");
+    const input = root.querySelector<HTMLInputElement>("[data-scrub-value]");
+
+    if (!(field && input)) {
+      return;
+    }
+
+    const min = Number(root.dataset.min ?? 0);
+    const max = Number(root.dataset.max ?? 100);
+    const step = Number(root.dataset.step ?? 1);
+
+    const clamp = (value: number) => Math.min(max, Math.max(min, value));
+
+    const snap = (value: number) => {
+      const snapped = Math.round(value / step) * step;
+      const precision =
+        step < 1 ? (String(step).split(".")[1]?.length ?? 1) : 0;
+      return Number(snapped.toFixed(precision));
+    };
+
+    const readValue = () => {
+      const parsed = Number.parseFloat(input.value);
+      return Number.isFinite(parsed) ? clamp(snap(parsed)) : min;
+    };
+
+    const writeValue = (value: number, dispatch = true) => {
+      const next = clamp(snap(value));
+      input.value = String(next);
+      root.dataset.value = String(next);
+
+      if (dispatch) {
+        root.dispatchEvent(
+          new CustomEvent("scrub-input:change", {
+            bubbles: true,
+            detail: { value: next },
+          })
+        );
+      }
+    };
+
+    let startX = 0;
+    let startValue = 0;
+    let moved = false;
+
+    const stopScrubbing = () => {
+      root.classList.remove("is-scrubbing");
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", stopScrubbing);
+      window.removeEventListener("pointercancel", stopScrubbing);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      const delta = event.clientX - startX;
+
+      if (Math.abs(delta) > 2) {
+        moved = true;
+        root.classList.add("is-scrubbing");
+      }
+
+      if (!moved) {
+        return;
+      }
+
+      const multiplier = event.shiftKey ? 10 : 1;
+      writeValue(startValue + delta * step * multiplier);
+    };
+
+    field.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || document.activeElement === input) {
+        return;
+      }
+
+      moved = false;
+      startX = event.clientX;
+      startValue = readValue();
+      field.setPointerCapture(event.pointerId);
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", stopScrubbing);
+      window.addEventListener("pointercancel", stopScrubbing);
+    });
+
+    field.addEventListener("pointerup", () => {
+      if (!moved && document.activeElement !== input) {
+        input.focus();
+        input.select();
+      }
+    });
+
+    input.addEventListener("focus", () => {
+      input.select();
+    });
+
+    input.addEventListener("blur", () => {
+      writeValue(readValue());
+    });
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        writeValue(readValue());
+        input.blur();
+      }
+
+      if (event.key === "Escape") {
+        writeValue(Number(root.dataset.value ?? min), false);
+        input.blur();
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        writeValue(readValue() + step * (event.shiftKey ? 10 : 1));
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        writeValue(readValue() - step * (event.shiftKey ? 10 : 1));
+      }
+    });
+
+    writeValue(Number(root.dataset.value ?? min), false);
+  };
+
+  for (const scrubInput of document.querySelectorAll<HTMLElement>(
+    "[data-scrub-input]"
+  )) {
+    initScrubInput(scrubInput);
+  }
+</script>

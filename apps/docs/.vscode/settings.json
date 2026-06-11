@@ -1,0 +1,6 @@
+{
+  "tailwindCSS.experimental.configFile": "src/styles/global.css",
+  "tailwindCSS.includeLanguages": {
+    "astro": "html"
+  }
+}
