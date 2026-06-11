@@ -1,0 +1,21 @@
+/*
+ * hyperellipse — zero-flash SSR fallback.
+ *
+ * In browsers without native `corner-shape` support this activates a global
+ * radius multiplier at first paint (no JS needed): squircles visually round
+ * less than circles, so a reduced border-radius minimizes the shape jump
+ * until the JS fallback applies the exact superellipse geometry.
+ *
+ * Usage in your styles:
+ *   .card {
+ *     --corner-shape: squircle;
+ *     border-radius: calc(45px * var(--corner-scale, 1));
+ *   }
+ *
+ * Override the multiplier globally or per element via --corner-scale.
+ */
+@supports not (corner-shape: squircle) {
+  :root {
+    --corner-scale: 0.6;
+  }
+}

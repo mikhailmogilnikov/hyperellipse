@@ -19,10 +19,12 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./css": "./css/fallback.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "css"
   ],
   "scripts": {
     "build": "tsup",
