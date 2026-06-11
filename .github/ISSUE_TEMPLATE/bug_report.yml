@@ -1,0 +1,39 @@
+name: Bug report
+description: Report incorrect corner rendering or runtime behavior
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to report a bug.
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      placeholder: Safari 18.2, Firefox 134, Chrome 133 + ?mode=force
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal HTML/CSS or a link to a sandbox
+      placeholder: |
+        .card { --corner-shape: squircle; border-radius: 40px; }
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
