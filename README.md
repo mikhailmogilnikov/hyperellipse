@@ -1,5 +1,9 @@
 # hyperellipse
 
+[![hyperellipse documentation](https://hyperellipse.vercel.app/og.png)](https://hyperellipse.vercel.app)
+
+**Docs:** [hyperellipse.vercel.app](https://hyperellipse.vercel.app)
+
 [![npm version](https://img.shields.io/npm/v/hyperellipse.svg)](https://www.npmjs.com/package/hyperellipse)
 [![CI](https://github.com/mikhailmogilnikov/hyperellipse/actions/workflows/ci.yml/badge.svg)](https://github.com/mikhailmogilnikov/hyperellipse/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
@@ -139,20 +143,9 @@ Full API notes, rendering strategies, limitations, and performance details live 
 | Safari / Firefox | Scans stylesheets for `--corner-shape`, renders with `clip-path` / SVG layers |
 | SSR | `--corner-scale` CSS snippet softens corners before JS loads |
 
-## Playground
-
-Local dev sandbox for testing native vs fallback rendering:
-
-```bash
-bun install
-bun dev
-```
-
-The split view compares both modes side by side. Append `?mode=force` on a single panel to preview the fallback engine in a supporting browser.
-
 ## Documentation site
 
-Interactive docs and playground: **[hyperellipse.vercel.app](https://hyperellipse.vercel.app)**
+**[hyperellipse.vercel.app](https://hyperellipse.vercel.app)**
 
 ```bash
 cd apps/docs
@@ -169,7 +162,7 @@ Monorepo managed with [Bun workspaces](https://bun.sh/docs/install/workspaces) a
 ```bash
 bun install
 bun run build          # build all packages
-bun run dev            # playground + package watch
+bun run dev            # docs + package watch
 bun run check          # lint / format (ultracite)
 bun run check-types    # typecheck
 ```

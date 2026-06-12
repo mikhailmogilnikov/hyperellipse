@@ -1,4 +1,0 @@
-{
-  "extends": "@repo/typescript-config/library.json",
-  "include": ["src"]
-}

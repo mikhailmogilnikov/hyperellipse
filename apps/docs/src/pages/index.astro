@@ -8,7 +8,7 @@ import InstallCommand from "../components/install-command.astro";
 import KnownLimitations from "../components/known-limitations.astro";
 import QuickStart from "../components/quick-start.astro";
 import SquircleDemo from "../components/squircle-demo.astro";
-import SquirclePlaygroundPanels from "../components/squircle-playground-panels.astro";
+import SquircleDemoPanels from "../components/squircle-demo-panels.astro";
 import WhyHyperellipse from "../components/why-hyperellipse.astro";
 import Layout from "../layouts/layout.astro";
 
@@ -55,13 +55,13 @@ const title = "hyperellipse";
         </a>
       </div>
     </header>
-    <section class="flex w-full flex-col gap-4" data-squircle-playground>
+    <section class="flex w-full flex-col gap-4" data-squircle-demo>
       <div
         class="card squircle flex h-80 w-full items-center justify-center rounded-3xl bg-card"
       >
         <SquircleDemo />
       </div>
-      <SquirclePlaygroundPanels />
+      <SquircleDemoPanels />
     </section>
     <InstallCommand />
     <QuickStart />

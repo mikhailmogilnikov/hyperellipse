@@ -98,7 +98,7 @@ const defaultOutlineOffset = 0;
 </div>
 
 <script>
-  interface PlaygroundState {
+  interface DemoPanelState {
     border: number;
     curve: number;
     hyperellipse: boolean;
@@ -139,7 +139,7 @@ const defaultOutlineOffset = 0;
     outlineOffset,
     radius,
     shadow,
-  }: PlaygroundState) => {
+  }: DemoPanelState) => {
     const lines = [".card {"];
 
     if (hyperellipse) {
@@ -179,14 +179,14 @@ const defaultOutlineOffset = 0;
     return Number.isFinite(parsed) ? parsed : fallback;
   };
 
-  const initSquirclePlaygroundPanels = (root: HTMLElement) => {
-    const playground = root.closest("[data-squircle-playground]");
+  const initSquircleDemoPanels = (root: HTMLElement) => {
+    const demo = root.closest("[data-squircle-demo]");
 
-    if (!playground) {
+    if (!demo) {
       return;
     }
 
-    const block = playground.querySelector<HTMLElement>("[data-demo-block]");
+    const block = demo.querySelector<HTMLElement>("[data-demo-block]");
     const cssOutput = root.querySelector("[data-squircle-css]");
     const radiusControl = root.querySelector<HTMLElement>(
       '[data-scrub-input][data-name="radius"]'
@@ -250,7 +250,7 @@ const defaultOutlineOffset = 0;
 
     const cornerShape = block.style.getPropertyValue("--corner-shape").trim();
 
-    const state: PlaygroundState = {
+    const state: DemoPanelState = {
       radius: parseCssVar(block, "--radius", 32),
       border: parseCssVar(block, "--border-width", 0),
       shadow: parseCssVar(block, "--shadow-size", 0),
@@ -346,6 +346,6 @@ const defaultOutlineOffset = 0;
   for (const panels of document.querySelectorAll<HTMLElement>(
     "[data-squircle-panels]"
   )) {
-    initSquirclePlaygroundPanels(panels);
+    initSquircleDemoPanels(panels);
   }
 </script>

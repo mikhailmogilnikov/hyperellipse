@@ -6,7 +6,7 @@ Thanks for your interest in contributing to hyperellipse!
 
 ```bash
 bun install
-bun run dev        # playground + package watch
+bun run dev        # docs + package watch
 bun run build
 bun run test
 bun run check
@@ -54,4 +54,4 @@ Please include:
 - Browser and version
 - Minimal HTML/CSS reproducer
 - Expected vs actual rendering
-- Whether native `corner-shape` is supported (`?mode=force` in the playground helps compare)
+- Whether native `corner-shape` is supported (compare in Chrome vs Safari/Firefox)

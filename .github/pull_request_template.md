@@ -7,7 +7,7 @@
 - [ ] `bun run check`
 - [ ] `bun run test`
 - [ ] `bun run build`
-- [ ] Visual check in playground (if UI/rendering changed)
+- [ ] Visual check on the docs site (if UI/rendering changed)
 
 ## Changeset
 

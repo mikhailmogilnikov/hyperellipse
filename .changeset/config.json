@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@repo/playground", "@repo/typescript-config"]
+  "ignore": ["@repo/typescript-config"]
 }
