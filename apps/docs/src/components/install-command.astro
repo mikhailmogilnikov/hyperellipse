@@ -31,7 +31,7 @@ const defaultManager = highlightedManagers[0];
   data-install-command
 >
   <div class="flex items-center justify-between gap-3">
-    <span class="docs-section-label">Install</span>
+    <h2 class="docs-section-label">Install</h2>
     <div
       class="squircle flex items-center gap-0.5 rounded-lg border border-foreground/8 bg-card p-0.5"
       role="tablist"
@@ -98,6 +98,8 @@ const defaultManager = highlightedManagers[0];
 </section>
 
 <script>
+  import { setupTablistKeyboard } from "../lib/tablist-keyboard";
+
   const COPY_FEEDBACK_MS = 2000;
 
   const collectInstallTemplates = (root: HTMLElement) => {
@@ -174,6 +176,16 @@ const defaultManager = highlightedManagers[0];
           setActiveTab(managerId);
         }
       });
+    }
+
+    const tablist = tabs[0]?.closest('[role="tablist"]');
+    if (tablist instanceof HTMLElement) {
+      setupTablistKeyboard(
+        tablist,
+        "[data-install-tab]",
+        (tab) => tab.dataset.installTab,
+        setActiveTab
+      );
     }
   };
 

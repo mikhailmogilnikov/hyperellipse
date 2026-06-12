@@ -92,6 +92,8 @@ const defaultTab = highlightedTabs[0];
 </div>
 
 <script>
+  import { setupTablistKeyboard } from "../lib/tablist-keyboard";
+
   const COPY_FEEDBACK_MS = 2000;
 
   const collectCodeTabTemplates = (root: HTMLElement) => {
@@ -173,6 +175,16 @@ const defaultTab = highlightedTabs[0];
           setActiveTab(tabId);
         }
       });
+    }
+
+    const tablist = root.querySelector('[role="tablist"]');
+    if (tablist instanceof HTMLElement) {
+      setupTablistKeyboard(
+        tablist,
+        "[data-code-tab]",
+        (tab) => tab.dataset.codeTab,
+        setActiveTab
+      );
     }
   };
 

@@ -1,5 +1,6 @@
 ---
 import { Font } from "astro:assets";
+import Analytics from "@vercel/analytics/astro";
 import "../styles/global.css";
 
 interface Props {
@@ -12,6 +13,9 @@ interface Props {
 const siteDescription =
   "CSS polyfill for squircles, superellipses, scoops, notches in any browser. Supports every frontend framework. SSR-friendly. Open-source.";
 
+const siteURL = Astro.site ?? new URL(Astro.url);
+const siteOrigin = siteURL.origin;
+
 const {
   title = "Hyperellipse",
   description = siteDescription,
@@ -19,8 +23,28 @@ const {
   class: className,
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
-const imageURL = new URL(image, Astro.site ?? Astro.url);
+const canonicalURL = new URL(Astro.url.pathname, siteURL);
+const imageURL = new URL(image, siteURL);
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "hyperellipse",
+      url: siteOrigin,
+      description: siteDescription,
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      name: "hyperellipse",
+      description: siteDescription,
+      codeRepository: "https://github.com/mikhailmogilnikov/hyperellipse",
+      programmingLanguage: ["TypeScript", "CSS"],
+      license: "https://opensource.org/licenses/MIT",
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -87,6 +111,11 @@ const imageURL = new URL(image, Astro.site ?? Astro.url);
     <meta name="author" content="Mikhail Mogilnikov">
     <meta name="robots" content="index, follow">
     <meta name="googlebot" content="index, follow">
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(structuredData)}
+    />
   </head>
   <body
     class:list={[
@@ -94,7 +123,9 @@ const imageURL = new URL(image, Astro.site ?? Astro.url);
       className,
     ]}
   >
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <slot />
+    <Analytics />
     <script>
       import { registerHyperellipse } from "hyperellipse";
 

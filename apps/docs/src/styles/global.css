@@ -58,11 +58,11 @@
 }
 
 @utility docs-section-label {
-  @apply text-sm font-semibold tracking-wide text-foreground uppercase;
+  @apply m-0 text-sm font-semibold tracking-wide text-foreground uppercase;
 }
 
 @utility docs-heading {
-  @apply font-semibold text-base text-foreground tracking-tight;
+  @apply m-0 font-semibold text-base text-foreground tracking-tight;
 }
 
 @utility docs-text {
@@ -81,6 +81,21 @@
   html {
     @apply scrollbar-styled;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility skip-link {
+  @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:border focus:border-foreground/8 focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-foreground focus:shadow-md focus:outline-none;
 }
 
 @layer components {

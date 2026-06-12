@@ -18,15 +18,15 @@ const { class: className } = Astro.props;
   class:list={["flex w-full scroll-mt-8 flex-col gap-5", className]}
   id="quick-start"
 >
-  <span class="docs-section-label">Quick start</span>
+  <h2 class="docs-section-label">Quick start</h2>
 
   <ol class="m-0 flex list-none flex-col gap-5 p-0">
     <li class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span class="docs-heading">
+        <h3 class="docs-heading">
           <span class="text-foreground/40">1.</span>
           Register on the client
-        </span>
+        </h3>
         <p class="docs-text m-0">
           Call
           <code class="font-mono text-foreground/70"
@@ -48,10 +48,10 @@ const { class: className } = Astro.props;
 
     <li class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span class="docs-heading">
+        <h3 class="docs-heading">
           <span class="text-foreground/40">2.</span>
           Style elements
-        </span>
+        </h3>
         <p class="docs-text m-0">
           Set
           <code class="font-mono text-foreground/70">--corner-shape</code>
@@ -75,11 +75,11 @@ const { class: className } = Astro.props;
 
     <li class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span class="docs-heading">
+        <h3 class="docs-heading">
           <span class="text-foreground/40">3.</span>
           SSR fallback
           <span class="font-normal text-foreground/40">(recommended)</span>
-        </span>
+        </h3>
         <p class="docs-text m-0">
           Squircles look less round than circles at the same radius. Add this
           global snippet so unsupported browsers set

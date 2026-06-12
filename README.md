@@ -150,6 +150,18 @@ bun dev
 
 The split view compares both modes side by side. Append `?mode=force` on a single panel to preview the fallback engine in a supporting browser.
 
+## Documentation site
+
+Interactive docs and playground: **[hyperellipse.vercel.app](https://hyperellipse.vercel.app)**
+
+```bash
+cd apps/docs
+bun install
+bun run dev
+bun run build
+bun run preview
+```
+
 ## Development
 
 Monorepo managed with [Bun workspaces](https://bun.sh/docs/install/workspaces) and [Turborepo](https://turbo.build/).

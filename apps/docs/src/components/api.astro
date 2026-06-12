@@ -64,13 +64,13 @@ const controller = [
       aria-hidden="true"
       class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/api:rotate-90"
     />
-    <span class="docs-heading">API</span>
+    <h3 class="docs-heading">API</h3>
   </summary>
 
   <div class="flex flex-col gap-5 border-foreground/8 border-t px-4 py-4">
     <div class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span class="docs-heading"> Supported values </span>
+        <h4 class="docs-heading">Supported values</h4>
         <p class="docs-text m-0">
           Same shorthand grammar as native
           <code class="font-mono text-foreground/70">corner-shape</code>
@@ -87,7 +87,7 @@ const controller = [
 
     <div class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span class="docs-heading"> Without a stylesheet </span>
+        <h4 class="docs-heading">Without a stylesheet</h4>
         <p class="docs-text m-0">
           Set
           <code class="font-mono text-foreground/70">data-corner-shape</code>
@@ -104,7 +104,7 @@ const controller = [
 
     <div class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span class="docs-heading"> registerHyperellipse() </span>
+        <h4 class="docs-heading">registerHyperellipse()</h4>
         <p class="docs-text m-0">
           Idempotent and SSR-safe. Repeated calls return the same controller
           instance.
@@ -122,7 +122,7 @@ const controller = [
       class="squircle flex flex-col overflow-hidden rounded-2xl border border-foreground/8 bg-card"
     >
       <div class="border-foreground/8 border-b px-4 py-3">
-        <span class="docs-heading"> Options </span>
+        <h4 class="docs-heading">Options</h4>
       </div>
       {options.map((row, index) => (
           <div
@@ -140,7 +140,7 @@ const controller = [
           </div>
         ))}
       <div class="border-foreground/8 border-t px-4 py-3">
-        <span class="docs-heading"> Controller </span>
+        <h4 class="docs-heading">Controller</h4>
       </div>
       {controller.map((row, index) => (
           <div

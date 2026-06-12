@@ -9,15 +9,21 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check-types": "astro check"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
     "@lucide/astro": "^1.17.0",
     "@tailwindcss/vite": "^4.3.0",
+    "@vercel/analytics": "^2.0.1",
     "astro": "^6.4.6",
     "hyperellipse": "^1.0.0",
     "shiki": "^4.2.0",
     "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "typescript": "^6.0.3"
   }
 }
