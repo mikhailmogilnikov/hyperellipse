@@ -148,6 +148,8 @@ export const readSource = (element: Element): SourceStyles | null => {
 export interface RenderTarget {
   /** `data-hyperellipse-host` tokens: `""`, `"layer"`, `"layer outline"`. */
   hostAttr: string;
+  /** Raw data URIs used by `styles` — pre-decode these before applying to avoid blank frames. */
+  images: string[];
   key: string;
   styles: Record<string, string>;
 }
@@ -156,12 +158,15 @@ export const CLEAR_TARGET: RenderTarget = {
   key: "",
   styles: {},
   hostAttr: "",
+  images: [],
 };
 
 const svgDataUri = (width: number, height: number, body: string): string => {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${body}</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
+
+const cssUrl = (uri: string): string => `url("${uri}")`;
 
 /** Border ring: stroke centered on the path, inside a `width×height` box. */
 const ringPathMarkup = (
@@ -202,7 +207,7 @@ const buildOutlineSvg = (
   height: number,
   corners: ResolvedCorners,
   outline: SourceOutline
-): { image: string; extent: number } => {
+): { uri: string; extent: number } => {
   const extent = outline.offset + outline.width;
   const canvasWidth = width + extent * 2;
   const canvasHeight = height + extent * 2;
@@ -217,7 +222,7 @@ const buildOutlineSvg = (
     offsetCorners(corners, outline.offset + inset)
   );
   const body = `<path d="${path}" fill="none" stroke="${outline.color}" stroke-width="${outline.width}"/>`;
-  return { image: svgDataUri(canvasWidth, canvasHeight, body), extent };
+  return { uri: svgDataUri(canvasWidth, canvasHeight, body), extent };
 };
 
 /** Per-side padding for the shadow canvas (blur + spread + offset). */
@@ -271,9 +276,9 @@ const shadowMarkup = (
 };
 
 interface LayerSvg {
-  image: string;
   /** `inset` value for the `::before` pseudo: negative margins for shadow bleed. */
   inset: string;
+  uri: string;
 }
 
 /**
@@ -337,9 +342,13 @@ const buildLayerSvg = (
   }
 
   const defsMarkup = defs.length > 0 ? `<defs>${defs.join("")}</defs>` : "";
+  // The absolutely positioned pseudo resolves `inset` against the host's
+  // padding box, while the SVG canvas matches the border box — compensate
+  // with the border width so the image is not squeezed inward.
+  const borderWidth = source.border.width;
   return {
-    image: svgDataUri(canvasWidth, canvasHeight, defsMarkup + body.join("")),
-    inset: `${-margins.top}px ${-margins.right}px ${-margins.bottom}px ${-margins.left}px`,
+    uri: svgDataUri(canvasWidth, canvasHeight, defsMarkup + body.join("")),
+    inset: `${-(margins.top + borderWidth)}px ${-(margins.right + borderWidth)}px ${-(margins.bottom + borderWidth)}px ${-(margins.left + borderWidth)}px`,
   };
 };
 
@@ -387,15 +396,18 @@ const computeClipTarget = (
     "-webkit-clip-path": clip,
     "border-radius": "0px",
   };
+  const images: string[] = [];
   if (source.border.visible) {
     const ring = buildRingSvg(width, height, corners, source.border);
-    Object.assign(styles, composeBackground(source.background, ring));
+    images.push(ring);
+    Object.assign(styles, composeBackground(source.background, cssUrl(ring)));
     styles["border-color"] = "transparent";
   }
   return {
     key: `clip|${clip}|${styles["background-image"] ?? ""}`,
     styles,
     hostAttr: "",
+    images,
   };
 };
 
@@ -411,11 +423,12 @@ const computeLayerTarget = (
   corners: ResolvedCorners
 ): RenderTarget => {
   const layer = buildLayerSvg(width, height, corners, source);
+  const images = [layer.uri];
   const styles: Record<string, string> = {
     "border-radius": "0px",
     "background-color": "transparent",
     isolation: "isolate",
-    "--hyperellipse-layer-image": layer.image,
+    "--hyperellipse-layer-image": cssUrl(layer.uri),
     "--hyperellipse-layer-inset": layer.inset,
   };
   if (source.position === "static") {
@@ -429,23 +442,29 @@ const computeLayerTarget = (
   }
 
   let hostAttr = "layer";
+  let outlineUri = "";
   if (source.outline) {
-    const { image, extent } = buildOutlineSvg(
+    const { uri, extent } = buildOutlineSvg(
       width,
       height,
       corners,
       source.outline
     );
-    styles["--hyperellipse-outline-image"] = image;
-    styles["--hyperellipse-outline-inset"] = `${-extent}px`;
+    outlineUri = uri;
+    images.push(uri);
+    styles["--hyperellipse-outline-image"] = cssUrl(uri);
+    // Same padding-box compensation as the layer pseudo above.
+    styles["--hyperellipse-outline-inset"] =
+      `${-(extent + source.border.width)}px`;
     styles["outline-color"] = "transparent";
     hostAttr = "layer outline";
   }
 
   return {
-    key: `layer|${layer.image}|${styles["--hyperellipse-outline-image"] ?? ""}`,
+    key: `layer|${layer.uri}|${outlineUri}`,
     styles,
     hostAttr,
+    images,
   };
 };
 

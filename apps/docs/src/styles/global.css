@@ -38,13 +38,13 @@
   --corner-radius-4xl: 2.5rem;
 }
 
+@utility text-gradient {
+  @apply bg-clip-text text-transparent;
+}
+
 @utility squircle {
   corner-shape: squircle;
   --corner-shape: squircle;
-}
-
-@utility text-gradient {
-  @apply bg-clip-text text-transparent;
 }
 
 @layer components {

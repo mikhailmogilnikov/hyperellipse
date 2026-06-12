@@ -24,9 +24,12 @@ export interface Engine {
 const BASE_SELECTORS = ["[data-corner-shape]", '[style*="--corner-shape"]'];
 
 interface Entry {
+  /** Last applied inline styles — needed to restore paint while a new SVG decodes. */
+  applied: Record<string, string>;
   hostAttr: string;
   key: string;
-  owned: string[];
+  /** Monotonic token: invalidates pending async (decode) applies superseded by newer state. */
+  seq: number;
   /** Snapshot of the `style` attribute after our write — distinguishes our mutations from author/React updates. */
   snapshot: string;
   source: SourceStyles | null;
@@ -35,10 +38,14 @@ interface Entry {
 const createEntry = (): Entry => ({
   source: null,
   key: "",
-  owned: [],
+  applied: {},
+  seq: 0,
   snapshot: "",
   hostAttr: "",
 });
+
+/** Upper bound for the decoded-URI memo before it resets. */
+const DECODED_CACHE_LIMIT = 256;
 
 const isValidSelector = (doc: Document, selector: string): boolean => {
   try {
@@ -61,7 +68,8 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
   const entries = new WeakMap<HTMLElement, Entry>();
   const tracked = new Set<HTMLElement>();
   const dirty = new Set<HTMLElement>();
-  const resized = new Set<HTMLElement>();
+  /** Data URIs already decoded by the browser — safe to apply synchronously. */
+  const decodedImages = new Set<string>();
 
   let selectorString = BASE_SELECTORS.join(", ");
   let flushScheduled = false;
@@ -82,14 +90,17 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
   const resizeObserver = new ResizeObserver((roEntries) => {
     for (const roEntry of roEntries) {
       const element = roEntry.target;
-      if (element instanceof HTMLElement && tracked.has(element)) {
-        const entry = entries.get(element);
-        if (entry?.source) {
-          // Size-only change — reuse cached source, skip getComputedStyle.
-          resized.add(element);
-        } else {
-          dirty.add(element);
-        }
+      if (!(element instanceof HTMLElement && tracked.has(element))) {
+        continue;
+      }
+      const entry = entries.get(element);
+      if (entry?.source) {
+        // Size-only change — reuse cached source and apply right away:
+        // ResizeObserver fires after layout but before paint, so synchronous
+        // writes land in the same frame (no one-frame corner lag).
+        handleResize(element, entry);
+      } else {
+        dirty.add(element);
         scheduleFlush();
       }
     }
@@ -123,7 +134,6 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
   const untrack = (element: HTMLElement): void => {
     tracked.delete(element);
     dirty.delete(element);
-    resized.delete(element);
     resizeObserver.unobserve(element);
   };
 
@@ -140,14 +150,28 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     scheduleFlush();
   };
 
-  const clearOwned = (element: HTMLElement, entry: Entry): void => {
-    for (const prop of entry.owned) {
+  /** Removes our inline props from the DOM without resetting entry bookkeeping. */
+  const removeApplied = (element: HTMLElement, entry: Entry): void => {
+    for (const prop of Object.keys(entry.applied)) {
       element.style.removeProperty(prop);
     }
+  };
+
+  /** Re-applies the last target so the old paint persists while a new SVG decodes. */
+  const restoreApplied = (element: HTMLElement, entry: Entry): void => {
+    for (const [prop, value] of Object.entries(entry.applied)) {
+      element.style.setProperty(prop, value);
+    }
+    entry.snapshot = element.getAttribute("style") ?? "";
+  };
+
+  const clearOwned = (element: HTMLElement, entry: Entry): void => {
+    entry.seq += 1;
+    removeApplied(element, entry);
     if (entry.hostAttr) {
       element.removeAttribute(HOST_ATTR);
     }
-    entry.owned = [];
+    entry.applied = {};
     entry.key = "";
     entry.hostAttr = "";
   };
@@ -157,6 +181,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     entry: Entry,
     target: RenderTarget
   ): void => {
+    entry.seq += 1;
     if (target === CLEAR_TARGET) {
       clearOwned(element, entry);
       entry.snapshot = element.getAttribute("style") ?? "";
@@ -165,14 +190,13 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     if (target.key === entry.key) {
       return;
     }
-    const nextProps = Object.keys(target.styles);
-    for (const prop of entry.owned) {
+    for (const prop of Object.keys(entry.applied)) {
       if (!(prop in target.styles)) {
         element.style.removeProperty(prop);
       }
     }
-    for (const prop of nextProps) {
-      element.style.setProperty(prop, target.styles[prop] ?? "");
+    for (const [prop, value] of Object.entries(target.styles)) {
+      element.style.setProperty(prop, value);
     }
     if (target.hostAttr !== entry.hostAttr) {
       if (target.hostAttr) {
@@ -181,18 +205,80 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
         element.removeAttribute(HOST_ATTR);
       }
     }
-    entry.owned = nextProps;
+    entry.applied = target.styles;
     entry.key = target.key;
     entry.hostAttr = target.hostAttr;
     entry.snapshot = element.getAttribute("style") ?? "";
   };
 
-  const collectBatch = (): {
-    dirtyList: HTMLElement[];
-    sizeList: HTMLElement[];
-  } => {
+  const rememberDecoded = (uris: string[]): void => {
+    if (decodedImages.size >= DECODED_CACHE_LIMIT) {
+      decodedImages.clear();
+    }
+    for (const uri of uris) {
+      decodedImages.add(uri);
+    }
+  };
+
+  /** Loads + decodes data URIs off-DOM so the later CSS swap hits the image cache. */
+  const decodeImages = (uris: string[]): Promise<void> => {
+    const jobs = uris.map((uri) => {
+      const image = doc.createElement("img");
+      image.src = uri;
+      return image.decode();
+    });
+    return Promise.allSettled(jobs).then(() => {
+      rememberDecoded(uris);
+    });
+  };
+
+  /**
+   * Applies a target, pre-decoding its SVG images first. Swapping a
+   * `background-image` to a not-yet-decoded data URI paints a blank frame
+   * (visible as flicker during resize); decoding up front keeps the previous
+   * paint on screen until the new image is ready.
+   */
+  const scheduleApply = (
+    element: HTMLElement,
+    entry: Entry,
+    target: RenderTarget
+  ): void => {
+    if (target !== CLEAR_TARGET && target.key === entry.key) {
+      return;
+    }
+    const pending = target.images.filter((uri) => !decodedImages.has(uri));
+    if (target === CLEAR_TARGET || pending.length === 0) {
+      applyTarget(element, entry, target);
+      return;
+    }
+    entry.seq += 1;
+    const seq = entry.seq;
+    decodeImages(pending).then(() => {
+      const stale =
+        destroyed ||
+        entry.seq !== seq ||
+        !element.isConnected ||
+        !tracked.has(element);
+      if (!stale) {
+        applyTarget(element, entry, target);
+      }
+    });
+  };
+
+  const handleResize = (element: HTMLElement, entry: Entry): void => {
+    if (dirty.has(element) || !entry.source) {
+      return;
+    }
+    const width = element.offsetWidth;
+    const height = element.offsetHeight;
+    if (!(width && height)) {
+      return;
+    }
+    scheduleApply(element, entry, computeTarget(entry.source, width, height));
+  };
+
+  const collectDirty = (): HTMLElement[] => {
     const dirtyList: HTMLElement[] = [];
-    const sizeList: HTMLElement[] = [];
     for (const element of dirty) {
       if (element.isConnected) {
         dirtyList.push(element);
@@ -200,23 +286,16 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
         untrack(element);
       }
     }
-    for (const element of resized) {
-      if (!element.isConnected) {
-        untrack(element);
-        continue;
-      }
-      if (!dirty.has(element)) {
-        sizeList.push(element);
-      }
-    }
     dirty.clear();
-    resized.clear();
-    return { dirtyList, sizeList };
+    return dirtyList;
   };
 
   /**
-   * Clears our inline overrides and re-reads original computed values with the
-   * pending sheet disabled (so the full radius is visible, not the reduced one).
+   * Temporarily removes our inline overrides, re-reads original computed
+   * values with the pending sheet disabled (so the full radius is visible),
+   * then restores the previous overrides. The remove/restore round-trip stays
+   * within one rAF callback, so the intermediate state never paints — and the
+   * old visuals keep rendering while the new SVG decodes asynchronously.
    */
   const readDirtySources = (dirtyList: HTMLElement[]): void => {
     if (dirtyList.length === 0) {
@@ -227,7 +306,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     for (const element of dirtyList) {
       const entry = entries.get(element);
       if (entry) {
-        clearOwned(element, entry);
+        removeApplied(element, entry);
       }
     }
     for (const element of dirtyList) {
@@ -236,36 +315,20 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
         entry.source = readSource(element);
       }
     }
+    for (const element of dirtyList) {
+      const entry = entries.get(element);
+      if (entry) {
+        restoreApplied(element, entry);
+      }
+    }
     readSheet.setDisabled(true);
     pendingSheet.setDisabled(false);
   };
 
-  const computeJobs = (
-    elementList: HTMLElement[]
-  ): [HTMLElement, Entry, RenderTarget][] => {
-    const jobs: [HTMLElement, Entry, RenderTarget][] = [];
-    for (const element of elementList) {
-      const entry = entries.get(element);
-      if (!entry) {
-        continue;
-      }
-      if (!entry.source) {
-        entry.snapshot = element.getAttribute("style") ?? "";
-        continue;
-      }
-      const width = element.offsetWidth;
-      const height = element.offsetHeight;
-      if (!(width && height)) {
-        continue;
-      }
-      jobs.push([element, entry, computeTarget(entry.source, width, height)]);
-    }
-    return jobs;
-  };
-
   /**
-   * Flush phases: clear dirty elements + disable pending sheet → all reads →
-   * re-enable sheets → all writes. Layout is touched at most twice per batch.
+   * Flush phases: remove overrides + disable pending sheet → all reads →
+   * restore + re-enable sheets → all writes. Layout is touched at most twice
+   * per batch.
    */
   const flush = (): void => {
     flushScheduled = false;
@@ -277,15 +340,28 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       rescan();
     }
 
-    const { dirtyList, sizeList } = collectBatch();
-    if (dirtyList.length === 0 && sizeList.length === 0) {
+    const dirtyList = collectDirty();
+    if (dirtyList.length === 0) {
       return;
     }
 
     readDirtySources(dirtyList);
-    const jobs = computeJobs([...dirtyList, ...sizeList]);
-    for (const [element, entry, target] of jobs) {
-      applyTarget(element, entry, target);
+    for (const element of dirtyList) {
+      const entry = entries.get(element);
+      if (!entry) {
+        continue;
+      }
+      if (!entry.source) {
+        clearOwned(element, entry);
+        entry.snapshot = element.getAttribute("style") ?? "";
+        continue;
+      }
+      const width = element.offsetWidth;
+      const height = element.offsetHeight;
+      if (!(width && height)) {
+        continue;
+      }
+      scheduleApply(element, entry, computeTarget(entry.source, width, height));
     }
   };
 
@@ -455,7 +531,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       }
       tracked.clear();
       dirty.clear();
-      resized.clear();
+      decodedImages.clear();
       pendingSheet.remove();
       baseSheet.remove();
       readSheet.remove();
