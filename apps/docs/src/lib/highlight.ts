@@ -3,8 +3,10 @@ import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import astro from "shiki/langs/astro.mjs";
 import css from "shiki/langs/css.mjs";
 import shell from "shiki/langs/shellscript.mjs";
+import svelte from "shiki/langs/svelte.mjs";
 import tsx from "shiki/langs/tsx.mjs";
 import typescript from "shiki/langs/typescript.mjs";
+import vue from "shiki/langs/vue.mjs";
 import githubDark from "shiki/themes/github-dark.mjs";
 import githubLight from "shiki/themes/github-light.mjs";
 
@@ -12,8 +14,10 @@ export type HighlightLanguage =
   | "astro"
   | "css"
   | "shell"
+  | "svelte"
   | "tsx"
-  | "typescript";
+  | "typescript"
+  | "vue";
 
 export interface CodeTab {
   code: string;
@@ -28,7 +32,7 @@ const getHighlighter = async () => {
   if (!highlighter) {
     highlighter = await createHighlighterCore({
       engine: createJavaScriptRegexEngine(),
-      langs: [astro, css, shell, tsx, typescript],
+      langs: [astro, css, shell, svelte, tsx, typescript, vue],
       themes: [githubLight, githubDark],
     });
   }

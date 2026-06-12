@@ -1,6 +1,10 @@
 import type { CodeTab } from "./highlight";
 
 const astroRegisterCode = [
+  "---",
+  "// Layout.astro",
+  "---",
+  "",
   "<script>",
   '  import { registerHyperellipse } from "hyperellipse";',
   "",
@@ -10,45 +14,49 @@ const astroRegisterCode = [
 
 export const frameworkTabs: CodeTab[] = [
   {
-    code: `"use client";
-
+    code: `'use client';
+    
 import { useEffect } from "react";
 import { registerHyperellipse } from "hyperellipse";
 
-export function RegisterHyperellipse() {
+export default function App() {
   useEffect(() => {
     registerHyperellipse();
   }, []);
 
-  return null;
+  return <main>...</main>;
 }`,
     id: "react",
     label: "React",
     lang: "tsx",
   },
   {
-    code: `import { createApp } from "vue";
+    code: `<!-- App.vue -->
+<script setup>
+import { onMounted } from "vue";
 import { registerHyperellipse } from "hyperellipse";
-import App from "./App.vue";
 
-registerHyperellipse();
-
-createApp(App).mount("#app");`,
+onMounted(() => {
+  registerHyperellipse();
+});
+</script>`,
     id: "vue",
     label: "Vue",
-    lang: "typescript",
+    lang: "vue",
   },
   {
-    code: `import { mount } from "svelte";
-import { registerHyperellipse } from "hyperellipse";
-import App from "./App.svelte";
+    code: `<!-- +layout.svelte -->
+<script>
+  import { onMount } from "svelte";
+  import { registerHyperellipse } from "hyperellipse";
 
-registerHyperellipse();
-
-mount(App, { target: document.getElementById("app")! });`,
+  onMount(() => {
+    registerHyperellipse();
+  });
+</script>`,
     id: "svelte",
     label: "Svelte",
-    lang: "typescript",
+    lang: "svelte",
   },
   {
     code: astroRegisterCode,
@@ -57,7 +65,8 @@ mount(App, { target: document.getElementById("app")! });`,
     lang: "astro",
   },
   {
-    code: `import { registerHyperellipse } from "hyperellipse";
+    code: `// main.ts
+import { registerHyperellipse } from "hyperellipse";
 
 registerHyperellipse();`,
     id: "vanilla",
@@ -67,10 +76,8 @@ registerHyperellipse();`,
 ];
 
 export const stylingCode = `.button {
-  corner-shape: squircle;
   --corner-shape: squircle;
   border-radius: 45px;
-  background: #2563eb;
 }`;
 
 export const ssrFallbackCode = `@import "hyperellipse/css";

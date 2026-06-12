@@ -33,8 +33,9 @@ const { class: className } = Astro.props;
           <code class="font-mono text-foreground/70"
             >registerHyperellipse()</code
           >
-          once from your client entry. Idempotent and SSR-safe — no-op without
-          <code class="font-mono text-foreground/70">document</code>.
+          once on the client — in
+          <code class="font-mono text-foreground/70">App</code>, root layout, or
+          entry file. Safe to call again; no-op during SSR.
         </p>
       </div>
 
@@ -61,9 +62,14 @@ const { class: className } = Astro.props;
           <code class="font-mono text-foreground/70">border-radius</code>
           — the custom property survives in the CSSOM where native
           <code class="font-mono text-foreground/70">corner-shape</code>
-          is dropped. In Chrome you can also write native
-          <code class="font-mono text-foreground/70">corner-shape</code>
-          alongside it for zero-JS rendering.
+          is dropped.
+        </p>
+        <p class="m-0 text-[0.8125rem] text-foreground/40 leading-relaxed">
+          Tip: add
+          <code class="font-mono text-foreground/55"
+            >corner-shape: squircle</code
+          >
+          for native zero-JS rendering.
         </p>
       </div>
 
