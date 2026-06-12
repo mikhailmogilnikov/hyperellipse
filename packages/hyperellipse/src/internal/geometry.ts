@@ -164,6 +164,9 @@ export const buildShapePath = (
 /**
  * Offsets corner radii inward/outward. `delta < 0` — inset (inner stroke path),
  * `delta > 0` — outset (outline). Zero radii stay sharp.
+ *
+ * Axis-aligned expansion per css-borders-4: radii grow by the offset while the
+ * shape parameter stays the same. Use for `box-shadow` spread.
  */
 export const offsetCorners = (
   corners: ResolvedCorners,
@@ -171,6 +174,61 @@ export const offsetCorners = (
 ): ResolvedCorners =>
   corners.map((corner) => ({
     shape: corner.shape,
+    rx: corner.rx > 0 ? Math.max(corner.rx + delta, 0) : 0,
+    ry: corner.ry > 0 ? Math.max(corner.ry + delta, 0) : 0,
+  })) as ResolvedCorners;
+
+const SHAPE_FRACTION_EPSILON = 1e-6;
+
+/**
+ * Solves the shape parameter for a curve-following offset contour.
+ *
+ * A superellipse grown to radius `r + delta` with the same parameter drifts
+ * away from the source curve at the corner diagonal (~19% of the offset for
+ * `squircle`), producing visible gaps between outline and border. Per
+ * css-borders-4 §3.9.4 borders and outlines must follow the curve at constant
+ * distance, so we pick a new parameter whose curve passes through the
+ * diagonal point exactly `delta` away from the source curve. `round` (s = 1)
+ * is a fixed point of this formula: a concentric circle is already an exact
+ * offset curve.
+ */
+const alignedShape = (corner: ResolvedCorner, delta: number): number => {
+  const { shape } = corner;
+  if (delta === 0 || shape === 0 || !Number.isFinite(shape)) {
+    return shape;
+  }
+  const radius = (corner.rx + corner.ry) * HALF;
+  if (radius <= 0 || radius + delta <= 0) {
+    return shape;
+  }
+  // Diagonal fraction: at t = 0.5 the corner curve sits at `f × R√2` from its
+  // arc center (convex) or vertex (concave), where f = 0.5^(0.5^|s|).
+  const sourceFraction = HALF ** (HALF ** Math.abs(shape));
+  // Projection of the offset onto the corner diagonal differs for convex
+  // (shared arc center) and concave (vertex-anchored) curves.
+  const diagonalShare = shape < 0 ? 1 - Math.SQRT1_2 : Math.SQRT1_2;
+  const targetFraction =
+    (sourceFraction * radius + delta * diagonalShare) / (radius + delta);
+  const clamped = Math.min(
+    Math.max(targetFraction, HALF + SHAPE_FRACTION_EPSILON),
+    1 - SHAPE_FRACTION_EPSILON
+  );
+  const exponent = Math.log(clamped) / Math.log(HALF);
+  const magnitude = Math.log(exponent) / Math.log(HALF);
+  return shape < 0 ? -magnitude : magnitude;
+};
+
+/**
+ * Curve-following offset per css-borders-4 §3.9.4: radii grow by the offset
+ * and the shape parameter is adjusted to keep a constant distance from the
+ * source curve. Use for border strokes and outlines.
+ */
+export const offsetCornersAligned = (
+  corners: ResolvedCorners,
+  delta: number
+): ResolvedCorners =>
+  corners.map((corner) => ({
+    shape: alignedShape(corner, delta),
     rx: corner.rx > 0 ? Math.max(corner.rx + delta, 0) : 0,
     ry: corner.ry > 0 ? Math.max(corner.ry + delta, 0) : 0,
   })) as ResolvedCorners;

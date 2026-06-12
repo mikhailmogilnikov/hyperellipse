@@ -2,6 +2,7 @@ import {
   buildShapePath,
   type CornerShapeList,
   offsetCorners,
+  offsetCornersAligned,
   type ResolvedCorners,
 } from "./geometry";
 import {
@@ -185,7 +186,7 @@ const ringPathMarkup = (
       width: width - border.width,
       height: height - border.width,
     },
-    offsetCorners(corners, -inset)
+    offsetCornersAligned(corners, -inset)
   );
   return `<path d="${path}" fill="none" stroke="${border.color}" stroke-width="${border.width}"/>`;
 };
@@ -202,26 +203,37 @@ const buildRingSvg = (
     ringPathMarkup(0, 0, width, height, corners, border)
   );
 
+/**
+ * Inward overlap when the outline touches the border (`outline-offset <= 0`).
+ * The outline and the border live in separate SVG layers, and two adjacent
+ * anti-aliased edges never composite to full opacity — a hairline seam shows
+ * through. Extending the stroke under the border hides it; the outer edge
+ * stays in place.
+ */
+const OUTLINE_SEAM_BLEED = 1;
+
 const buildOutlineSvg = (
   width: number,
   height: number,
   corners: ResolvedCorners,
   outline: SourceOutline
 ): { uri: string; extent: number } => {
+  const bleed = outline.offset <= 0 ? OUTLINE_SEAM_BLEED : 0;
   const extent = outline.offset + outline.width;
   const canvasWidth = width + extent * 2;
   const canvasHeight = height + extent * 2;
-  const inset = outline.width * HALF;
+  const strokeWidth = outline.width + bleed;
+  const inset = strokeWidth * HALF;
   const path = buildShapePath(
     {
       x: inset,
       y: inset,
-      width: canvasWidth - outline.width,
-      height: canvasHeight - outline.width,
+      width: canvasWidth - strokeWidth,
+      height: canvasHeight - strokeWidth,
     },
-    offsetCorners(corners, outline.offset + inset)
+    offsetCornersAligned(corners, outline.offset - bleed + inset)
   );
-  const body = `<path d="${path}" fill="none" stroke="${outline.color}" stroke-width="${outline.width}"/>`;
+  const body = `<path d="${path}" fill="none" stroke="${outline.color}" stroke-width="${strokeWidth}"/>`;
   return { uri: svgDataUri(canvasWidth, canvasHeight, body), extent };
 };
 
