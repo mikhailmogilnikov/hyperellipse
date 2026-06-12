@@ -3,6 +3,7 @@ import { Star } from "@lucide/astro";
 import Api from "../components/api.astro";
 import BrowserSupport from "../components/browser-support.astro";
 import DetailExamples from "../components/detail-examples.astro";
+import HyperellipseLogo from "../components/hyperellipse-logo.astro";
 import InstallCommand from "../components/install-command.astro";
 import KnownLimitations from "../components/known-limitations.astro";
 import QuickStart from "../components/quick-start.astro";
@@ -19,6 +20,7 @@ const title = "hyperellipse";
     class="flex min-h-dvh items-center flex-col max-w-xl px-4 mx-auto pt-12 gap-8 tracking-tight"
   >
     <header class="flex flex-col gap-6 items-center">
+      <HyperellipseLogo />
       <h1
         class="text-[2.5rem] font-bold text-gradient bg-linear-30 from-foreground to-foreground/60"
       >
@@ -76,8 +78,9 @@ const title = "hyperellipse";
     <DetailExamples />
 
     <footer
-      class="flex flex-col items-center h-30 justify-center gap-1 text-center text-sm font-medium text-foreground/40"
+      class="flex h-40 flex-col items-center justify-center gap-1 text-center text-sm font-medium text-foreground/40"
     >
+      <HyperellipseLogo class="h-8 text-foreground/35 mb-6" />
       <p class="m-0">
         Designed and developed by
         <a

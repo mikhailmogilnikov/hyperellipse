@@ -26,7 +26,21 @@ const { title = "Hyperellipse", class: className } = Astro.props;
       media="(prefers-color-scheme: dark)"
       name="theme-color"
     >
-    <link href="/favicon.svg" rel="icon" type="image/svg+xml">
+    <link
+      rel="icon"
+      type="image/png"
+      href="/favicon-96x96.png?v=20260612"
+      sizes="96x96"
+    >
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260612">
+    <link rel="shortcut icon" href="/favicon.ico?v=20260612">
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/apple-touch-icon.png?v=20260612"
+    >
+    <meta name="apple-mobile-web-app-title" content="hyperellipse">
+    <link rel="manifest" href="/site.webmanifest?v=20260612">
     <Font cssVariable="--font-geist" preload />
     <Font cssVariable="--font-geist-mono" preload />
     <title>{title}</title>
