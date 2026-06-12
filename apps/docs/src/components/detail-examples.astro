@@ -13,9 +13,7 @@ const { class: className } = Astro.props;
   class:list={["flex w-full flex-col gap-3", className]}
   data-detail-examples
 >
-  <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
-    >Examples</span
-  >
+  <span class="docs-section-label">Examples</span>
 
   <div
     class="squircle flex flex-col overflow-hidden rounded-2xl border border-foreground/8 bg-card"
@@ -23,7 +21,7 @@ const { class: className } = Astro.props;
     {detailExampleGroups.map((group) => (
         <details class="group/details border-foreground/8 border-t first:border-t-0">
           <summary
-            class="detail-example-summary flex cursor-pointer list-none items-center gap-1.5 px-4 py-3 font-semibold text-[0.8125rem] text-foreground tracking-tight transition-colors hover:bg-foreground/3"
+            class="detail-example-summary docs-heading flex cursor-pointer list-none items-center gap-1.5 px-4 py-3 transition-colors hover:bg-foreground/3"
           >
             <ChevronRight
               aria-hidden="true"
@@ -42,11 +40,11 @@ const { class: className } = Astro.props;
                   class={example.previewClass}
                 />
                 <figcaption class="flex flex-col gap-0.5">
-                  <span class="font-semibold text-[0.75rem] text-foreground tracking-tight">
+                  <span class="docs-heading text-sm">
                     {example.caption}
                   </span>
                   <code
-                    class="font-mono text-[0.6875rem] text-foreground/45 leading-snug"
+                    class="font-mono text-foreground/45 text-sm leading-snug"
                   >
                     {example.label}
                   </code>

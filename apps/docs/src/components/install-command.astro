@@ -31,9 +31,7 @@ const defaultManager = highlightedManagers[0];
   data-install-command
 >
   <div class="flex items-center justify-between gap-3">
-    <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
-      >Install</span
-    >
+    <span class="docs-section-label">Install</span>
     <div
       class="squircle flex items-center gap-0.5 rounded-lg border border-foreground/8 bg-card p-0.5"
       role="tablist"
@@ -43,7 +41,7 @@ const defaultManager = highlightedManagers[0];
           <button
             aria-controls="install-command-panel"
             aria-selected={index === 0}
-            class="rounded-md px-2.5 py-1 font-semibold text-[0.6875rem] text-foreground/45 tracking-tight transition-[background-color,color,box-shadow] duration-150 hover:text-foreground/70 data-active:bg-foreground/8 data-active:text-foreground"
+            class="docs-tab data-active:shadow-[0_1px_2px_rgb(0_0_0/0.06)]"
             data-active={index === 0 ? "" : undefined}
             data-install-tab={manager.id}
             role="tab"

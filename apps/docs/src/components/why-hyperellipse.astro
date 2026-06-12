@@ -44,17 +44,15 @@ const rows = [
       aria-hidden="true"
       class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/why:rotate-90"
     />
-    <span class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-      >Why hyperellipse</span
-    >
+    <span class="docs-heading">Why hyperellipse</span>
   </summary>
 
   {rows.map((row) => (
       <div class="flex flex-col gap-1 border-foreground/8 border-t px-4 py-3">
-        <span class="font-semibold text-[0.8125rem] text-foreground tracking-tight">
+        <span class="docs-heading">
           {row.title}
         </span>
-        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+        <p class="docs-text m-0">
           {row.description}
         </p>
       </div>

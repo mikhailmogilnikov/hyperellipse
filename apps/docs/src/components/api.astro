@@ -64,20 +64,14 @@ const controller = [
       aria-hidden="true"
       class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/api:rotate-90"
     />
-    <span class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-      >API</span
-    >
+    <span class="docs-heading">API</span>
   </summary>
 
   <div class="flex flex-col gap-5 border-foreground/8 border-t px-4 py-4">
     <div class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span
-          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-        >
-          Supported values
-        </span>
-        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+        <span class="docs-heading"> Supported values </span>
+        <p class="docs-text m-0">
           Same shorthand grammar as native
           <code class="font-mono text-foreground/70">corner-shape</code>
           — 1 to 4 values per element.
@@ -93,12 +87,8 @@ const controller = [
 
     <div class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span
-          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-        >
-          Without a stylesheet
-        </span>
-        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+        <span class="docs-heading"> Without a stylesheet </span>
+        <p class="docs-text m-0">
           Set
           <code class="font-mono text-foreground/70">data-corner-shape</code>
           on the element when you cannot add a CSS rule.
@@ -114,12 +104,8 @@ const controller = [
 
     <div class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span
-          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-        >
-          registerHyperellipse()
-        </span>
-        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+        <span class="docs-heading"> registerHyperellipse() </span>
+        <p class="docs-text m-0">
           Idempotent and SSR-safe. Repeated calls return the same controller
           instance.
         </p>
@@ -136,11 +122,7 @@ const controller = [
       class="squircle flex flex-col overflow-hidden rounded-2xl border border-foreground/8 bg-card"
     >
       <div class="border-foreground/8 border-b px-4 py-3">
-        <span
-          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-        >
-          Options
-        </span>
+        <span class="docs-heading"> Options </span>
       </div>
       {options.map((row, index) => (
           <div
@@ -149,20 +131,16 @@ const controller = [
               index > 0 ? "border-foreground/8 border-t" : "",
             ]}
           >
-            <code class="font-mono font-semibold text-[0.8125rem] text-foreground tracking-tight">
+            <code class="docs-heading font-mono">
               {row.title}
             </code>
-            <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+            <p class="docs-text m-0">
               {row.description}
             </p>
           </div>
         ))}
       <div class="border-foreground/8 border-t px-4 py-3">
-        <span
-          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-        >
-          Controller
-        </span>
+        <span class="docs-heading"> Controller </span>
       </div>
       {controller.map((row, index) => (
           <div
@@ -171,10 +149,10 @@ const controller = [
               index > 0 ? "border-foreground/8 border-t" : "",
             ]}
           >
-            <code class="font-mono font-semibold text-[0.8125rem] text-foreground tracking-tight">
+            <code class="docs-heading font-mono">
               {row.title}
             </code>
-            <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+            <p class="docs-text m-0">
               {row.description}
             </p>
           </div>

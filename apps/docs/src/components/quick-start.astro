@@ -18,20 +18,16 @@ const { class: className } = Astro.props;
   class:list={["flex w-full scroll-mt-8 flex-col gap-5", className]}
   id="quick-start"
 >
-  <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
-    >Quick start</span
-  >
+  <span class="docs-section-label">Quick start</span>
 
   <ol class="m-0 flex list-none flex-col gap-5 p-0">
     <li class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span
-          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-        >
+        <span class="docs-heading">
           <span class="text-foreground/40">1.</span>
           Register on the client
         </span>
-        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+        <p class="docs-text m-0">
           Call
           <code class="font-mono text-foreground/70"
             >registerHyperellipse()</code
@@ -52,13 +48,11 @@ const { class: className } = Astro.props;
 
     <li class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span
-          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-        >
+        <span class="docs-heading">
           <span class="text-foreground/40">2.</span>
           Style elements
         </span>
-        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+        <p class="docs-text m-0">
           Set
           <code class="font-mono text-foreground/70">--corner-shape</code>
           next to
@@ -67,7 +61,7 @@ const { class: className } = Astro.props;
           <code class="font-mono text-foreground/70">corner-shape</code>
           is dropped.
         </p>
-        <p class="m-0 text-[0.8125rem] text-foreground/40 leading-relaxed">
+        <p class="docs-text-muted m-0">
           Tip: add
           <code class="font-mono text-foreground/55"
             >corner-shape: squircle</code
@@ -81,14 +75,12 @@ const { class: className } = Astro.props;
 
     <li class="flex flex-col gap-2.5">
       <div class="flex flex-col gap-1">
-        <span
-          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
-        >
+        <span class="docs-heading">
           <span class="text-foreground/40">3.</span>
           SSR fallback
           <span class="font-normal text-foreground/40">(recommended)</span>
         </span>
-        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+        <p class="docs-text m-0">
           Squircles look less round than circles at the same radius. Add this
           global snippet so unsupported browsers set
           <code class="font-mono text-foreground/70">--corner-scale: 0.6</code>

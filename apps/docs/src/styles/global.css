@@ -57,6 +57,26 @@
   @apply scrollbar-thin scrollbar-thumb-foreground/18 scrollbar-track-transparent;
 }
 
+@utility docs-section-label {
+  @apply text-sm font-semibold tracking-wide text-foreground uppercase;
+}
+
+@utility docs-heading {
+  @apply font-semibold text-base text-foreground tracking-tight;
+}
+
+@utility docs-text {
+  @apply text-base leading-relaxed text-foreground/50;
+}
+
+@utility docs-text-muted {
+  @apply text-base leading-relaxed text-foreground/40;
+}
+
+@utility docs-tab {
+  @apply rounded-md px-2.5 py-1 font-semibold text-sm text-foreground/45 tracking-tight transition-[background-color,color,box-shadow] duration-150 hover:text-foreground/70 data-active:bg-foreground/8 data-active:text-foreground;
+}
+
 @layer base {
   html {
     @apply scrollbar-styled;
@@ -69,7 +89,7 @@
   }
 
   .code-block-scroll {
-    @apply scrollbar-styled overflow-auto px-3 py-2.5 pe-11 font-mono text-[0.8125rem] leading-normal;
+    @apply scrollbar-styled overflow-auto px-3 py-2.5 pe-11 font-mono text-sm leading-normal;
   }
 
   .code-block-copy {
@@ -81,7 +101,7 @@
   }
 
   .install-command-scroll {
-    @apply scrollbar-styled min-w-0 flex-1 overflow-auto font-mono text-[0.8125rem] leading-5;
+    @apply scrollbar-styled min-w-0 flex-1 overflow-auto font-mono text-sm leading-6;
   }
 
   .install-command-copy {
