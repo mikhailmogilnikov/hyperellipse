@@ -1,0 +1,79 @@
+---
+import { ChevronRight } from "@lucide/astro";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const rows = [
+  {
+    description:
+      "Outer shadows and spread are exact; inset box-shadow is dropped in the fallback.",
+    title: "Inset shadows",
+  },
+  {
+    description:
+      "Dashed, dotted, and per-side borders render as a uniform solid ring.",
+    title: "Non-uniform borders",
+  },
+  {
+    description:
+      "With box-shadow or outline, background images and gradients are not shaped — corners may stick out. Solid fills work fully.",
+    title: "Layer mode + images",
+  },
+  {
+    description:
+      "Layer mode uses ::before/::after and isolation: isolate. Child content is not clipped to the shape.",
+    title: "Pseudo-elements & clipping",
+  },
+  {
+    description:
+      ":hover-only style changes without transitions are not observed. Call refresh() for other imperative updates.",
+    title: "Dynamic styles",
+  },
+  {
+    description:
+      "--corner-shape does not inherit — set it on the element itself, not on an ancestor.",
+    title: "Non-inherited property",
+  },
+  {
+    description:
+      "Animating corner-shape itself is not supported in the Safari / Firefox fallback.",
+    title: "corner-shape animation",
+  },
+] as const;
+---
+
+<section class:list={["w-full", className]}>
+  <details
+    class="group/limitations squircle overflow-hidden rounded-2xl border border-foreground/8 bg-card"
+  >
+    <summary
+      class="detail-example-summary flex cursor-pointer list-none items-center gap-1.5 px-4 py-3 transition-colors hover:bg-foreground/3"
+    >
+      <ChevronRight
+        aria-hidden="true"
+        class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/limitations:rotate-90"
+      />
+      <span
+        class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+        >Known limitations</span
+      >
+    </summary>
+
+    {rows.map((row) => (
+        <div
+          class="flex flex-col gap-1 border-foreground/8 border-t px-4 py-3"
+        >
+          <span class="font-semibold text-[0.8125rem] text-foreground tracking-tight">
+            {row.title}
+          </span>
+          <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+            {row.description}
+          </p>
+        </div>
+      ))}
+  </details>
+</section>
