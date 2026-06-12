@@ -1,7 +1,9 @@
 ---
 import ScrubInput from "./scrub-input.astro";
+import ToggleSwitch from "./toggle-switch.astro";
 
 const defaultRadius = 32;
+const defaultCurve = 2;
 const defaultBorder = 0;
 const defaultShadow = 0;
 const defaultOutline = 0;
@@ -13,7 +15,7 @@ const defaultOutlineOffset = 0;
   data-squircle-panels
 >
   <div
-    class="flex h-48 w-62 shrink-0 flex-col gap-3 squircle rounded-3xl bg-card p-4"
+    class="flex max-[576px]:w-full w-54 shrink-0 flex-col gap-3 squircle rounded-3xl bg-card p-4"
   >
     <span
       class="text-xs font-semibold tracking-wide text-foreground/50 uppercase"
@@ -32,6 +34,22 @@ const defaultOutlineOffset = 0;
       >Settings</span
     >
     <div class="flex flex-col gap-3">
+      <ToggleSwitch checked label="Enable hyperellipse" name="hyperellipse" />
+      <div
+        class="transition-opacity duration-150 data-disabled:pointer-events-none data-disabled:opacity-40"
+        data-curve-control
+      >
+        <ScrubInput
+          class="**:data-scrub-value:w-10"
+          label="Curve"
+          max={10}
+          min={1}
+          name="curve"
+          step={0.1}
+          unit=""
+          value={defaultCurve}
+        />
+      </div>
       <ScrubInput
         label="Border radius"
         max={128}
@@ -84,27 +102,53 @@ const defaultOutlineOffset = 0;
 <script>
   interface PlaygroundState {
     border: number;
+    curve: number;
+    hyperellipse: boolean;
     outline: number;
     outlineOffset: number;
     radius: number;
     shadow: number;
   }
 
+  const TRAILING_ZERO_RE = /\.0$/;
+  const SUPERELLIPSE_RE = /superellipse\(\s*([-\d.]+)/i;
+
+  const formatCurve = (curve: number) =>
+    Number.isInteger(curve)
+      ? String(curve)
+      : curve.toFixed(1).replace(TRAILING_ZERO_RE, "");
+
+  const formatCornerShape = (curve: number) => {
+    if (curve === 1) {
+      return "round";
+    }
+
+    if (curve === 2) {
+      return "squircle";
+    }
+
+    return `superellipse(${formatCurve(curve)})`;
+  };
+
   const formatShadow = (shadow: number) =>
     `0 ${shadow}px ${shadow * 2}px rgb(0 0 0 / 0.25)`;
 
   const formatCss = ({
     border,
+    curve,
+    hyperellipse,
     outline,
     outlineOffset,
     radius,
     shadow,
   }: PlaygroundState) => {
-    const lines = [
-      ".card {",
-      "  --corner-shape: squircle;",
-      `  border-radius: ${radius}px;`,
-    ];
+    const lines = [".card {"];
+
+    if (hyperellipse) {
+      lines.push(`  --corner-shape: ${formatCornerShape(curve)};`);
+    }
+
+    lines.push(`  border-radius: ${radius}px;`);
 
     if (border > 0) {
       lines.push(`  border: ${border}px solid;`);
@@ -161,6 +205,15 @@ const defaultOutlineOffset = 0;
     const outlineOffsetControl = root.querySelector<HTMLElement>(
       '[data-scrub-input][data-name="outline-offset"]'
     );
+    const hyperellipseToggle = root.querySelector<HTMLInputElement>(
+      '[data-toggle-input][name="hyperellipse"]'
+    );
+    const curveControl = root.querySelector<HTMLElement>(
+      '[data-scrub-input][data-name="curve"]'
+    );
+    const curveWrapper = root.querySelector<HTMLElement>(
+      "[data-curve-control]"
+    );
 
     if (
       !(
@@ -170,11 +223,34 @@ const defaultOutlineOffset = 0;
         borderControl &&
         shadowControl &&
         outlineControl &&
-        outlineOffsetControl
+        outlineOffsetControl &&
+        hyperellipseToggle &&
+        curveControl &&
+        curveWrapper
       )
     ) {
       return;
     }
+
+    const parseCurve = (value: string) => {
+      if (value === "round") {
+        return 1;
+      }
+
+      if (value === "squircle") {
+        return 2;
+      }
+
+      const match = value.match(SUPERELLIPSE_RE);
+      if (!match?.[1]) {
+        return 2;
+      }
+
+      const parsed = Number.parseFloat(match[1]);
+      return Number.isFinite(parsed) ? parsed : 2;
+    };
+
+    const cornerShape = block.style.getPropertyValue("--corner-shape").trim();
 
     const state: PlaygroundState = {
       radius: parseCssVar(block, "--radius", 32),
@@ -182,7 +258,12 @@ const defaultOutlineOffset = 0;
       shadow: parseCssVar(block, "--shadow-size", 0),
       outline: parseCssVar(block, "--outline-width", 0),
       outlineOffset: parseCssVar(block, "--outline-offset", 0),
+      hyperellipse: cornerShape.length > 0,
+      curve: parseCurve(cornerShape),
     };
+
+    hyperellipseToggle.checked = state.hyperellipse;
+    curveWrapper.toggleAttribute("data-disabled", !state.hyperellipse);
 
     const syncControl = (control: HTMLElement, value: number) => {
       control.dataset.value = String(value);
@@ -199,24 +280,37 @@ const defaultOutlineOffset = 0;
     };
 
     const apply = () => {
+      curveWrapper.toggleAttribute("data-disabled", !state.hyperellipse);
+
+      if (state.hyperellipse) {
+        block.style.setProperty(
+          "--corner-shape",
+          formatCornerShape(state.curve)
+        );
+      } else {
+        block.style.removeProperty("--corner-shape");
+      }
+
       block.style.setProperty("--radius", `${state.radius}px`);
       block.style.setProperty("--border-width", `${state.border}px`);
       block.style.setProperty("--shadow-size", `${state.shadow}px`);
-      block.style.setProperty(
-        "--demo-shadow",
-        state.shadow > 0 ? formatShadow(state.shadow) : "none"
-      );
       block.style.setProperty("--outline-width", `${state.outline}px`);
       block.style.setProperty("--outline-offset", `${state.outlineOffset}px`);
       render();
     };
 
     syncControl(radiusControl, state.radius);
+    syncControl(curveControl, state.curve);
     syncControl(borderControl, state.border);
     syncControl(shadowControl, state.shadow);
     syncControl(outlineControl, state.outline);
     syncControl(outlineOffsetControl, state.outlineOffset);
     apply();
+
+    curveControl.addEventListener("scrub-input:change", (event) => {
+      state.curve = (event as CustomEvent<{ value: number }>).detail.value;
+      apply();
+    });
 
     radiusControl.addEventListener("scrub-input:change", (event) => {
       state.radius = (event as CustomEvent<{ value: number }>).detail.value;
@@ -242,6 +336,11 @@ const defaultOutlineOffset = 0;
       state.outlineOffset = (
         event as CustomEvent<{ value: number }>
       ).detail.value;
+      apply();
+    });
+
+    hyperellipseToggle.addEventListener("change", () => {
+      state.hyperellipse = hyperellipseToggle.checked;
       apply();
     });
   };

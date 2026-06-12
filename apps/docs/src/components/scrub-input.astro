@@ -25,6 +25,9 @@ const {
   value = 0,
 } = Astro.props;
 
+const inputId =
+  id ?? `scrub-${name ?? label.toLowerCase().replaceAll(/\s+/g, "-")}`;
+
 const fieldClass =
   "inline-flex h-7 shrink-0 cursor-ew-resize touch-none select-none items-center gap-1 rounded-md border border-foreground/8 bg-foreground/4 py-0 pr-1.5 pl-1.5 transition-[border-color,background-color,box-shadow] duration-150 hover:border-foreground/12 hover:bg-foreground/6 focus-within:cursor-text focus-within:border-[#007aff]/45 focus-within:bg-foreground/5 focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,#007aff_18%,transparent)] group-[.is-scrubbing]/scrub:cursor-ew-resize group-[.is-scrubbing]/scrub:border-[#007aff]/50 group-[.is-scrubbing]/scrub:bg-[#007aff]/8 group-[.is-scrubbing]/scrub:shadow-[0_0_0_3px_color-mix(in_srgb,#007aff_20%,transparent)]";
 ---
@@ -40,34 +43,38 @@ const fieldClass =
   data-value={value}
   id={id}
 >
-  <div class="flex items-center justify-between gap-3">
-    <label
+  <label class="flex items-center justify-between gap-3" for={inputId}>
+    <span
       class="shrink-0 text-[0.8125rem] font-medium tracking-tight whitespace-nowrap text-foreground/55"
-      >{label}</label
+      >{label}</span
     >
     <div class={fieldClass} data-scrub-field>
       <MoveHorizontal
         aria-hidden="true"
-        class="pointer-events-none size-3 shrink-0 text-foreground/30 group-hover/scrub:text-foreground/45 group-[.is-scrubbing]/scrub:text-[#007aff]/70"
+        class="pointer-events-none size-3 shrink-0 text-foreground opacity-50 group-hover/scrub:opacity-100 group-[.is-scrubbing]/scrub:opacity-100"
         stroke-width={2}
       />
       <input
-        aria-label={label}
         autocomplete="off"
-        class="w-8 cursor-inherit border-0 bg-transparent p-0 text-right text-xs font-medium tracking-tight text-foreground tabular-nums outline-none focus:cursor-text"
+        class="w-6 cursor-inherit border-0 bg-transparent p-0 text-right text-xs font-medium tracking-tight text-foreground tabular-nums outline-none focus:cursor-text"
         data-scrub-value
+        id={inputId}
         inputmode="decimal"
+        name={name}
         spellcheck="false"
         type="text"
         value={value}
       >
-      <span
-        aria-hidden="true"
-        class="pointer-events-none shrink-0 text-[0.6875rem] font-medium tracking-tight text-foreground/35 tabular-nums"
-        >{unit}</span
-      >
+      {unit ? (
+          <span
+            aria-hidden="true"
+            class="pointer-events-none shrink-0 font-medium text-[0.6875rem] text-foreground/35 tabular-nums tracking-tight"
+          >
+            {unit}
+          </span>
+        ) : null}
     </div>
-  </div>
+  </label>
 </div>
 
 <script>

@@ -36,9 +36,9 @@ const gripClass =
   <div class="relative">
     <div
       aria-hidden="true"
-      class="squircle h-[var(--demo-height)] w-[var(--demo-width)] rounded-[calc(var(--radius)*var(--corner-scale,1))] border-solid border-foreground outline-solid outline-foreground [border-width:var(--border-width,0px)] [box-shadow:var(--demo-shadow,none)] [outline-width:var(--outline-width,0px)] [outline-offset:var(--outline-offset,0px)] bg-default group-[.is-dragging]/demo:transition-none"
+      class="h-(--demo-height) w-(--demo-width) rounded-[calc(var(--radius)*var(--corner-scale,1))] border-solid border-border outline-solid outline-border [border-width:var(--border-width,0px)] [box-shadow:0_var(--shadow-size)_calc(var(--shadow-size)*2)_var(--theme-shadow)] [outline-width:var(--outline-width,0px)] outline-offset-(--outline-offset,0px) bg-default group-[.is-dragging]/demo:transition-none"
       data-demo-block
-      style="--radius: 32px; --border-width: 0px; --shadow-size: 0px; --demo-shadow: none; --outline-width: 0px; --outline-offset: 0px"
+      style="--corner-shape: squircle; --radius: 32px; --border-width: 0px; --shadow-size: 0px; --outline-width: 0px; --outline-offset: 0px"
     ></div>
 
     <button

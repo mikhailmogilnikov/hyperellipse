@@ -7,6 +7,7 @@
   --theme-card: hsl(0, 0%, 100%);
   --theme-default: hsl(0, 0%, 88%);
   --theme-border: hsl(0, 0%, 88%);
+  --theme-shadow: rgb(0 0 0 / 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,7 +16,8 @@
     --theme-foreground: hsl(0, 0%, 100%);
     --theme-card: hsl(0, 0%, 5%);
     --theme-default: hsl(0, 0%, 15%);
-    --theme-border: hsl(0, 0%, 12%);
+    --theme-border: hsl(0, 0%, 31%);
+    --theme-shadow: rgb(0 0 0 / 0.65);
   }
 }
 

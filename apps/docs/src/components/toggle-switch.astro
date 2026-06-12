@@ -1,0 +1,37 @@
+---
+interface Props {
+  checked?: boolean;
+  class?: string;
+  label: string;
+  name?: string;
+}
+
+const { checked = false, class: className, label, name } = Astro.props;
+---
+
+<label
+  class:list={[
+    "flex cursor-pointer items-center justify-between gap-3 select-none",
+    className,
+  ]}
+  data-toggle-switch
+>
+  <span class="text-[0.8125rem] font-medium tracking-tight text-foreground/55"
+    >{label}</span
+  >
+  <span
+    class="relative inline-flex h-6 w-11 shrink-0 rounded-full border border-foreground/8 bg-foreground/6 p-0.5 transition-[background-color,border-color] duration-200 has-checked:border-transparent has-checked:bg-foreground/30"
+  >
+    <input
+      checked={checked}
+      class="peer sr-only"
+      data-toggle-input
+      name={name}
+      type="checkbox"
+    >
+    <span
+      aria-hidden="true"
+      class="pointer-events-none block h-4.5 w-6 rounded-full bg-white shadow-[0_1px_2px_rgb(0_0_0/0.16),0_2px_6px_rgb(0_0_0/0.08)] transition-transform duration-200 ease-out peer-checked:translate-x-3.5"
+    ></span>
+  </span>
+</label>
