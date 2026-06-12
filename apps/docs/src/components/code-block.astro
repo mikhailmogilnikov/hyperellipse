@@ -1,0 +1,103 @@
+---
+import { Check, Copy } from "@lucide/astro";
+import { highlightCode } from "../lib/highlight";
+
+interface Props {
+  class?: string;
+  code: string;
+  copyLabel?: string;
+  lang: import("../lib/highlight").HighlightLanguage;
+}
+
+const { class: className, code, copyLabel = "Copy code", lang } = Astro.props;
+
+const highlighted = await highlightCode(code, lang);
+const source = code.trim();
+---
+
+<div
+  class:list={["code-block-panel squircle", className]}
+  data-code-block
+  data-code-source={source}
+>
+  <div class="code-block-scroll">
+    <div class="code-block m-0 min-w-0" set:html={highlighted} />
+  </div>
+  <button
+    aria-label={copyLabel}
+    class="code-block-copy"
+    data-code-copy
+    type="button"
+  >
+    <Copy aria-hidden="true" class="size-3.5" data-code-copy-icon />
+    <Check
+      aria-hidden="true"
+      class="hidden size-3.5 text-[#34c759]"
+      data-code-check-icon
+    />
+  </button>
+</div>
+
+<script>
+  const COPY_FEEDBACK_MS = 2000;
+
+  const setupCodeBlockCopy = (root: HTMLElement) => {
+    const copyButton = root.querySelector("[data-code-copy]");
+
+    if (!(copyButton instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const copyIcon = copyButton.querySelector("[data-code-copy-icon]");
+    const checkIcon = copyButton.querySelector("[data-code-check-icon]");
+    let copyTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const setCopied = (copied: boolean) => {
+      copyIcon?.classList.toggle("hidden", copied);
+      checkIcon?.classList.toggle("hidden", !copied);
+    };
+
+    copyButton.addEventListener("click", async () => {
+      const source = root.dataset.codeSource?.trim();
+      if (!source) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(source);
+      } catch {
+        return;
+      }
+
+      setCopied(true);
+
+      if (copyTimeout) {
+        clearTimeout(copyTimeout);
+      }
+
+      copyTimeout = setTimeout(() => {
+        setCopied(false);
+      }, COPY_FEEDBACK_MS);
+    });
+  };
+
+  const initCodeBlock = (root: HTMLElement) => {
+    if (root.dataset.codeBlockReady === "true") {
+      return;
+    }
+
+    root.dataset.codeBlockReady = "true";
+    setupCodeBlockCopy(root);
+  };
+
+  const initCodeBlocks = () => {
+    for (const root of document.querySelectorAll("[data-code-block]")) {
+      if (root instanceof HTMLElement) {
+        initCodeBlock(root);
+      }
+    }
+  };
+
+  initCodeBlocks();
+  document.addEventListener("astro:page-load", initCodeBlocks);
+</script>

@@ -1,0 +1,243 @@
+---
+import { Check, Copy } from "@lucide/astro";
+import { type CodeTab, highlightCode } from "../lib/highlight";
+
+interface Props {
+  ariaLabel: string;
+  class?: string;
+  copyLabel?: string;
+  panelId: string;
+  tabs: CodeTab[];
+}
+
+const {
+  ariaLabel,
+  class: className,
+  copyLabel = "Copy code",
+  panelId,
+  tabs,
+} = Astro.props;
+
+const highlightedTabs = await Promise.all(
+  tabs.map(async (tab) => ({
+    ...tab,
+    highlighted: await highlightCode(tab.code, tab.lang),
+  }))
+);
+
+const defaultTab = highlightedTabs[0];
+---
+
+<div class:list={["flex flex-col gap-3", className]} data-code-tabs>
+  <div
+    aria-label={ariaLabel}
+    class="squircle flex flex-wrap items-center gap-0.5 self-start rounded-lg border border-foreground/8 bg-foreground/4 p-0.5"
+    role="tablist"
+  >
+    {highlightedTabs.map((tab, index) => (
+        <button
+          aria-controls={panelId}
+          aria-selected={index === 0}
+          class="rounded-md px-2.5 py-1 font-semibold text-[0.6875rem] text-foreground/45 tracking-tight transition-[background-color,color,box-shadow] duration-150 hover:text-foreground/70 data-active:bg-foreground/8 data-active:text-foreground data-active:shadow-[0_1px_2px_rgb(0_0_0/0.06)]"
+          data-active={index === 0 ? "" : undefined}
+          data-code-tab={tab.id}
+          role="tab"
+          type="button"
+        >
+          {tab.label}
+        </button>
+      ))}
+  </div>
+
+  <div
+    class="code-block-panel squircle"
+    data-code-block
+    data-code-source={defaultTab.code}
+    id={panelId}
+    role="tabpanel"
+  >
+    <div class="code-block-scroll">
+      <div
+        class="code-block m-0 min-w-0"
+        data-code-tabs-highlight
+        set:html={defaultTab.highlighted}
+      />
+    </div>
+    <button
+      aria-label={copyLabel}
+      class="code-block-copy"
+      data-code-copy
+      type="button"
+    >
+      <Copy aria-hidden="true" class="size-3.5" data-code-copy-icon />
+      <Check
+        aria-hidden="true"
+        class="hidden size-3.5 text-[#34c759]"
+        data-code-check-icon
+      />
+    </button>
+  </div>
+
+  <div aria-hidden="true" class="hidden">
+    {highlightedTabs.map((tab) => (
+        <>
+          <template data-code-tab-template={tab.id}>{tab.code}</template>
+          <div
+            data-code-tab-highlight-template={tab.id}
+            set:html={tab.highlighted}
+          />
+        </>
+      ))}
+  </div>
+</div>
+
+<script>
+  const COPY_FEEDBACK_MS = 2000;
+
+  const collectCodeTabTemplates = (root: HTMLElement) => {
+    const sources = new Map<string, string>();
+    const highlights = new Map<string, string>();
+
+    for (const template of root.querySelectorAll("[data-code-tab-template]")) {
+      if (!(template instanceof HTMLTemplateElement)) {
+        continue;
+      }
+
+      const tabId = template.dataset.codeTabTemplate;
+      if (!tabId) {
+        continue;
+      }
+
+      sources.set(tabId, template.content.textContent?.trim() ?? "");
+    }
+
+    for (const node of root.querySelectorAll(
+      "[data-code-tab-highlight-template]"
+    )) {
+      if (!(node instanceof HTMLElement)) {
+        continue;
+      }
+
+      const tabId = node.dataset.codeTabHighlightTemplate;
+      if (!tabId) {
+        continue;
+      }
+
+      highlights.set(tabId, node.innerHTML);
+    }
+
+    return { highlights, sources };
+  };
+
+  const setupCodeTabs = (root: HTMLElement) => {
+    const panel = root.querySelector("[data-code-block]");
+    const highlight = root.querySelector("[data-code-tabs-highlight]");
+    const tabs = root.querySelectorAll("[data-code-tab]");
+
+    if (!(panel instanceof HTMLElement && highlight instanceof HTMLElement)) {
+      return;
+    }
+
+    const templates = collectCodeTabTemplates(root);
+
+    const setActiveTab = (tabId: string) => {
+      const source = templates.sources.get(tabId);
+      const highlighted = templates.highlights.get(tabId);
+
+      if (!(source && highlighted)) {
+        return;
+      }
+
+      panel.dataset.codeSource = source;
+      highlight.innerHTML = highlighted;
+
+      for (const tab of tabs) {
+        if (!(tab instanceof HTMLButtonElement)) {
+          continue;
+        }
+
+        const isActive = tab.dataset.codeTab === tabId;
+        tab.setAttribute("aria-selected", String(isActive));
+        tab.toggleAttribute("data-active", isActive);
+      }
+    };
+
+    for (const tab of tabs) {
+      if (!(tab instanceof HTMLButtonElement)) {
+        continue;
+      }
+
+      tab.addEventListener("click", () => {
+        const tabId = tab.dataset.codeTab;
+        if (tabId) {
+          setActiveTab(tabId);
+        }
+      });
+    }
+  };
+
+  const setupCodeBlockCopy = (root: HTMLElement) => {
+    const copyButton = root.querySelector("[data-code-copy]");
+
+    if (!(copyButton instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const copyIcon = copyButton.querySelector("[data-code-copy-icon]");
+    const checkIcon = copyButton.querySelector("[data-code-check-icon]");
+    let copyTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const setCopied = (copied: boolean) => {
+      copyIcon?.classList.toggle("hidden", copied);
+      checkIcon?.classList.toggle("hidden", !copied);
+    };
+
+    copyButton.addEventListener("click", async () => {
+      const source = root.dataset.codeSource?.trim();
+      if (!source) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(source);
+      } catch {
+        return;
+      }
+
+      setCopied(true);
+
+      if (copyTimeout) {
+        clearTimeout(copyTimeout);
+      }
+
+      copyTimeout = setTimeout(() => {
+        setCopied(false);
+      }, COPY_FEEDBACK_MS);
+    });
+  };
+
+  const initCodeTabs = (root: HTMLElement) => {
+    if (root.dataset.codeTabsReady === "true") {
+      return;
+    }
+
+    root.dataset.codeTabsReady = "true";
+
+    const panel = root.querySelector("[data-code-block]");
+    if (panel instanceof HTMLElement) {
+      setupCodeTabs(root);
+      setupCodeBlockCopy(panel);
+    }
+  };
+
+  const initAllCodeTabs = () => {
+    for (const root of document.querySelectorAll("[data-code-tabs]")) {
+      if (root instanceof HTMLElement) {
+        initCodeTabs(root);
+      }
+    }
+  };
+
+  initAllCodeTabs();
+  document.addEventListener("astro:page-load", initAllCodeTabs);
+</script>

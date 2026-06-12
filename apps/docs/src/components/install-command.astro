@@ -1,5 +1,6 @@
 ---
 import { Check, Copy } from "@lucide/astro";
+import { highlightCode } from "../lib/highlight";
 
 interface Props {
   class?: string;
@@ -15,14 +16,18 @@ const packageManagers = [
   { id: "bun", label: "bun", command: `bun add ${packageName}` },
 ] as const;
 
-const defaultManager = packageManagers[0];
+const highlightedManagers = await Promise.all(
+  packageManagers.map(async (manager) => ({
+    ...manager,
+    highlighted: await highlightCode(manager.command, "shell"),
+  }))
+);
+
+const defaultManager = highlightedManagers[0];
 ---
 
 <section
-  class:list={[
-    "flex w-full flex-col gap-3",
-    className,
-  ]}
+  class:list={["flex w-full flex-col gap-3", className]}
   data-install-command
 >
   <div class="flex items-center justify-between gap-3">
@@ -30,11 +35,11 @@ const defaultManager = packageManagers[0];
       >Install</span
     >
     <div
-      class="flex items-center gap-0.5 rounded-lg border border-foreground/8 bg-foreground/4 p-0.5 squircle"
+      class="squircle flex items-center gap-0.5 rounded-lg border border-foreground/8 bg-foreground/4 p-0.5"
       role="tablist"
       aria-label="Package manager"
     >
-      {packageManagers.map((manager, index) => (
+      {highlightedManagers.map((manager, index) => (
           <button
             aria-controls="install-command-panel"
             aria-selected={index === 0}
@@ -51,38 +56,55 @@ const defaultManager = packageManagers[0];
   </div>
 
   <div
-    class="relative flex items-center gap-3 rounded-2xl border border-foreground/8 bg-foreground/4 px-3 py-2.5 squircle"
+    class="code-block-panel install-command-panel squircle"
+    data-code-block
+    data-code-source={defaultManager.command}
     id="install-command-panel"
     role="tabpanel"
   >
-    <pre
-      class="m-0 min-w-0 flex-1 overflow-x-auto p-0 font-mono text-[0.8125rem] leading-normal whitespace-pre text-foreground/85"
-    ><code data-install-code>{defaultManager.command}</code></pre>
+    <div class="install-command-scroll">
+      <div
+        class="code-block m-0 min-w-0"
+        data-install-highlight
+        set:html={defaultManager.highlighted}
+      />
+    </div>
     <button
       aria-label="Copy install command"
-      class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-foreground/8 bg-card text-foreground/55 transition-[background-color,border-color,color] duration-150 hover:border-foreground/12 hover:text-foreground"
-      data-install-copy
+      class="install-command-copy"
+      data-code-copy
       type="button"
     >
-      <Copy aria-hidden="true" class="size-3.5" data-install-copy-icon />
+      <Copy aria-hidden="true" class="size-3.5" data-code-copy-icon />
       <Check
         aria-hidden="true"
         class="hidden size-3.5 text-[#34c759]"
-        data-install-check-icon
+        data-code-check-icon
       />
     </button>
   </div>
 
-  {packageManagers.map((manager) => (
-      <template data-install-template={manager.id}>{manager.command}</template>
-    ))}
+  <div aria-hidden="true" class="hidden">
+    {highlightedManagers.map((manager) => (
+        <>
+          <template data-install-template={manager.id}>
+            {manager.command}
+          </template>
+          <div
+            data-install-highlight-template={manager.id}
+            set:html={manager.highlighted}
+          />
+        </>
+      ))}
+  </div>
 </section>
 
 <script>
   const COPY_FEEDBACK_MS = 2000;
 
   const collectInstallTemplates = (root: HTMLElement) => {
-    const templates = new Map<string, string>();
+    const commands = new Map<string, string>();
+    const highlights = new Map<string, string>();
 
     for (const template of root.querySelectorAll("[data-install-template]")) {
       if (!(template instanceof HTMLTemplateElement)) {
@@ -94,24 +116,43 @@ const defaultManager = packageManagers[0];
         continue;
       }
 
-      templates.set(manager, template.content.textContent?.trim() ?? "");
+      commands.set(manager, template.content.textContent?.trim() ?? "");
     }
 
-    return templates;
+    for (const node of root.querySelectorAll(
+      "[data-install-highlight-template]"
+    )) {
+      if (!(node instanceof HTMLElement)) {
+        continue;
+      }
+
+      const manager = node.dataset.installHighlightTemplate;
+      if (!manager) {
+        continue;
+      }
+
+      highlights.set(manager, node.innerHTML);
+    }
+
+    return { commands, highlights };
   };
 
   const setupInstallTabs = (
     tabs: NodeListOf<Element>,
-    templates: Map<string, string>,
-    code: HTMLElement
+    templates: ReturnType<typeof collectInstallTemplates>,
+    panel: HTMLElement,
+    highlight: HTMLElement
   ) => {
     const setActiveTab = (managerId: string) => {
-      const command = templates.get(managerId);
-      if (!command) {
+      const command = templates.commands.get(managerId);
+      const highlighted = templates.highlights.get(managerId);
+
+      if (!(command && highlighted)) {
         return;
       }
 
-      code.textContent = command;
+      panel.dataset.codeSource = command;
+      highlight.innerHTML = highlighted;
 
       for (const tab of tabs) {
         if (!(tab instanceof HTMLButtonElement)) {
@@ -138,12 +179,15 @@ const defaultManager = packageManagers[0];
     }
   };
 
-  const setupInstallCopy = (
-    copyButton: HTMLButtonElement,
-    code: HTMLElement
-  ) => {
-    const copyIcon = copyButton.querySelector("[data-install-copy-icon]");
-    const checkIcon = copyButton.querySelector("[data-install-check-icon]");
+  const setupCodeBlockCopy = (root: HTMLElement) => {
+    const copyButton = root.querySelector("[data-code-copy]");
+
+    if (!(copyButton instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const copyIcon = copyButton.querySelector("[data-code-copy-icon]");
+    const checkIcon = copyButton.querySelector("[data-code-check-icon]");
     let copyTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const setCopied = (copied: boolean) => {
@@ -152,13 +196,13 @@ const defaultManager = packageManagers[0];
     };
 
     copyButton.addEventListener("click", async () => {
-      const command = code.textContent?.trim();
-      if (!command) {
+      const source = root.dataset.codeSource?.trim();
+      if (!source) {
         return;
       }
 
       try {
-        await navigator.clipboard.writeText(command);
+        await navigator.clipboard.writeText(source);
       } catch {
         return;
       }
@@ -182,19 +226,16 @@ const defaultManager = packageManagers[0];
 
     root.dataset.installReady = "true";
 
-    const code = root.querySelector("[data-install-code]");
-    const copyButton = root.querySelector("[data-install-copy]");
+    const panel = root.querySelector("[data-code-block]");
+    const highlight = root.querySelector("[data-install-highlight]");
     const tabs = root.querySelectorAll("[data-install-tab]");
 
-    if (!(code instanceof HTMLElement)) {
+    if (!(panel instanceof HTMLElement && highlight instanceof HTMLElement)) {
       return;
     }
 
-    setupInstallTabs(tabs, collectInstallTemplates(root), code);
-
-    if (copyButton instanceof HTMLButtonElement) {
-      setupInstallCopy(copyButton, code);
-    }
+    setupInstallTabs(tabs, collectInstallTemplates(root), panel, highlight);
+    setupCodeBlockCopy(panel);
   };
 
   const initInstallCommands = () => {

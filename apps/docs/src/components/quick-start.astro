@@ -1,0 +1,100 @@
+---
+import {
+  frameworkTabs,
+  ssrFallbackCode,
+  stylingCode,
+} from "../lib/quick-start-frameworks";
+import CodeBlock from "./code-block.astro";
+import CodeTabs from "./code-tabs.astro";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<section class:list={["flex w-full flex-col gap-5", className]}>
+  <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
+    >Quick start</span
+  >
+
+  <ol class="m-0 flex list-none flex-col gap-5 p-0">
+    <li class="flex flex-col gap-2.5">
+      <div class="flex flex-col gap-1">
+        <span
+          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+        >
+          <span class="text-foreground/40">1.</span>
+          Register on the client
+        </span>
+        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+          Call
+          <code class="font-mono text-foreground/70"
+            >registerHyperellipse()</code
+          >
+          once from your client entry. Idempotent and SSR-safe — no-op without
+          <code class="font-mono text-foreground/70">document</code>.
+        </p>
+      </div>
+
+      <CodeTabs
+        ariaLabel="Frontend framework"
+        copyLabel="Copy registration code"
+        panelId="quick-start-register-panel"
+        tabs={frameworkTabs}
+      />
+    </li>
+
+    <li class="flex flex-col gap-2.5">
+      <div class="flex flex-col gap-1">
+        <span
+          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+        >
+          <span class="text-foreground/40">2.</span>
+          Style elements
+        </span>
+        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+          Set
+          <code class="font-mono text-foreground/70">--corner-shape</code>
+          next to
+          <code class="font-mono text-foreground/70">border-radius</code>
+          — the custom property survives in the CSSOM where native
+          <code class="font-mono text-foreground/70">corner-shape</code>
+          is dropped. In Chrome you can also write native
+          <code class="font-mono text-foreground/70">corner-shape</code>
+          alongside it for zero-JS rendering.
+        </p>
+      </div>
+
+      <CodeBlock code={stylingCode} copyLabel="Copy styling code" lang="css" />
+    </li>
+
+    <li class="flex flex-col gap-2.5">
+      <div class="flex flex-col gap-1">
+        <span
+          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+        >
+          <span class="text-foreground/40">3.</span>
+          SSR fallback
+          <span class="font-normal text-foreground/40">(recommended)</span>
+        </span>
+        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+          Squircles look less round than circles at the same radius. Scale
+          <code class="font-mono text-foreground/70">border-radius</code>
+          down in unsupported browsers so the first paint already feels right —
+          import
+          <code class="font-mono text-foreground/70">hyperellipse/css</code>
+          and use
+          <code class="font-mono text-foreground/70">--corner-scale</code>.
+        </p>
+      </div>
+
+      <CodeBlock
+        code={ssrFallbackCode}
+        copyLabel="Copy SSR fallback code"
+        lang="css"
+      />
+    </li>
+  </ol>
+</section>

@@ -53,6 +53,56 @@
 }
 
 @layer components {
+  .code-block-panel {
+    @apply relative rounded-2xl border border-foreground/8 bg-foreground/4;
+  }
+
+  .code-block-scroll {
+    @apply overflow-auto px-3 py-2.5 pe-11 font-mono text-[0.8125rem] leading-normal;
+  }
+
+  .code-block-copy {
+    @apply absolute top-2.5 right-2.5 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-foreground/8 bg-card text-foreground/55 shadow-[0_1px_2px_rgb(0_0_0/0.06)] transition-[background-color,border-color,color] duration-150 hover:border-foreground/12 hover:text-foreground;
+  }
+
+  .install-command-panel {
+    @apply relative flex min-h-12 items-center py-2.5 pl-3 pr-11;
+  }
+
+  .install-command-scroll {
+    @apply min-w-0 flex-1 overflow-auto font-mono text-[0.8125rem] leading-5;
+  }
+
+  .install-command-copy {
+    @apply absolute top-1/2 right-2.5 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border border-foreground/8 bg-card text-foreground/55 shadow-[0_1px_2px_rgb(0_0_0/0.06)] transition-[background-color,border-color,color] duration-150 hover:border-foreground/12 hover:text-foreground;
+  }
+
+  .code-block .shiki {
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: pre;
+    background-color: transparent !important;
+  }
+
+  .code-block .shiki code {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .code-block .shiki,
+    .code-block .shiki span {
+      font-style: var(--shiki-dark-font-style) !important;
+      font-weight: var(--shiki-dark-font-weight) !important;
+      color: var(--shiki-dark) !important;
+      text-decoration: var(--shiki-dark-text-decoration) !important;
+    }
+  }
+
   .squircle {
     --radius-xs: calc(var(--corner-radius-xs) * var(--corner-scale, 1));
     --radius-sm: calc(var(--corner-radius-sm) * var(--corner-scale, 1));
