@@ -1,0 +1,22 @@
+---
+import HyperellipseLogo from "../components/hyperellipse-logo.astro";
+import Layout from "../layouts/layout.astro";
+---
+
+<Layout title="Page not found — hyperellipse">
+  <main
+    class="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 text-center tracking-tight"
+  >
+    <HyperellipseLogo class="h-10 text-foreground/35" />
+    <h1 class="text-4xl font-bold text-foreground">404</h1>
+    <p class="max-w-sm text-base text-foreground/50">
+      This page does not exist.
+    </p>
+    <a
+      class="squircle inline-flex h-10 items-center justify-center rounded-xl bg-card px-4 font-semibold text-[0.8125rem] text-foreground shadow-md tracking-tight"
+      href="/"
+    >
+      Back to home
+    </a>
+  </main>
+</Layout>

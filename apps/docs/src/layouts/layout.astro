@@ -4,10 +4,23 @@ import "../styles/global.css";
 
 interface Props {
   class?: string;
+  description?: string;
+  image?: string;
   title?: string;
 }
 
-const { title = "Hyperellipse", class: className } = Astro.props;
+const siteDescription =
+  "CSS polyfill for squircles, superellipses, scoops, notches in any browser. Supports every frontend framework. SSR-friendly. Open-source.";
+
+const {
+  title = "Hyperellipse",
+  description = siteDescription,
+  image = "/og.png",
+  class: className,
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
+const imageURL = new URL(image, Astro.site ?? Astro.url);
 ---
 
 <!doctype html>
@@ -44,9 +57,28 @@ const { title = "Hyperellipse", class: className } = Astro.props;
     <Font cssVariable="--font-geist" preload />
     <Font cssVariable="--font-geist-mono" preload />
     <title>{title}</title>
+    <link rel="canonical" href={canonicalURL}>
+    <meta name="description" content={description}>
+    <meta property="og:site_name" content="hyperellipse">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
+    <meta property="og:url" content={canonicalURL}>
+    <meta property="og:image" content={imageURL}>
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta
-      name="description"
-      content="CSS polyfill for squircles, superellipses, scoops, notches in any browser. Supports every frontend framework. SSR-friendly. Open-source."
+      property="og:image:alt"
+      content="hyperellipse — CSS corner-shape polyfill"
+    >
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content={title}>
+    <meta name="twitter:description" content={description}>
+    <meta name="twitter:image" content={imageURL}>
+    <meta
+      name="twitter:image:alt"
+      content="hyperellipse — CSS corner-shape polyfill"
     >
     <meta
       name="keywords"
