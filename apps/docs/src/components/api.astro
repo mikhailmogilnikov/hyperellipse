@@ -1,0 +1,184 @@
+---
+import { ChevronRight } from "@lucide/astro";
+import {
+  dataCornerShapeCode,
+  registerApiCode,
+  supportedValuesCode,
+} from "../lib/api";
+import CodeBlock from "./code-block.astro";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const options = [
+  {
+    description:
+      "Extra selectors for elements using corner shapes — escape hatch for cross-origin stylesheets.",
+    title: "selector",
+  },
+  {
+    description:
+      "Border-radius multiplier in the automatic pending stylesheet after JS loads. Default 0.6. Prefer the CSS --corner-scale snippet for SSR.",
+    title: "pendingRadiusScale",
+  },
+  {
+    description:
+      "Force the JS fallback even when the browser supports native corner-shape. Useful for debugging.",
+    title: "force",
+  },
+] as const;
+
+const controller = [
+  {
+    description: "Whether the browser supports native corner-shape.",
+    title: "supported",
+  },
+  {
+    description: "Whether the JS fallback engine is running.",
+    title: "active",
+  },
+  {
+    description: "Rescan stylesheets and recompute every tracked element.",
+    title: "refresh()",
+  },
+  {
+    description: "Stop the fallback and remove all applied inline styles.",
+    title: "destroy()",
+  },
+] as const;
+---
+
+<details
+  class:list={[
+    "group/api border-foreground/8 border-t first:border-t-0",
+    className,
+  ]}
+>
+  <summary
+    class="detail-example-summary flex cursor-pointer list-none items-center gap-1.5 px-4 py-3 transition-colors hover:bg-foreground/3"
+  >
+    <ChevronRight
+      aria-hidden="true"
+      class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/api:rotate-90"
+    />
+    <span class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+      >API</span
+    >
+  </summary>
+
+  <div class="flex flex-col gap-5 border-foreground/8 border-t px-4 py-4">
+    <div class="flex flex-col gap-2.5">
+      <div class="flex flex-col gap-1">
+        <span
+          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+        >
+          Supported values
+        </span>
+        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+          Same shorthand grammar as native
+          <code class="font-mono text-foreground/70">corner-shape</code>
+          — 1 to 4 values per element.
+        </p>
+      </div>
+
+      <CodeBlock
+        code={supportedValuesCode}
+        copyLabel="Copy supported values"
+        lang="css"
+      />
+    </div>
+
+    <div class="flex flex-col gap-2.5">
+      <div class="flex flex-col gap-1">
+        <span
+          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+        >
+          Without a stylesheet
+        </span>
+        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+          Set
+          <code class="font-mono text-foreground/70">data-corner-shape</code>
+          on the element when you cannot add a CSS rule.
+        </p>
+      </div>
+
+      <CodeBlock
+        code={dataCornerShapeCode}
+        copyLabel="Copy data-corner-shape example"
+        lang="html"
+      />
+    </div>
+
+    <div class="flex flex-col gap-2.5">
+      <div class="flex flex-col gap-1">
+        <span
+          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+        >
+          registerHyperellipse()
+        </span>
+        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+          Idempotent and SSR-safe. Repeated calls return the same controller
+          instance.
+        </p>
+      </div>
+
+      <CodeBlock
+        code={registerApiCode}
+        copyLabel="Copy API example"
+        lang="typescript"
+      />
+    </div>
+
+    <div
+      class="squircle flex flex-col overflow-hidden rounded-2xl border border-foreground/8 bg-card"
+    >
+      <div class="border-foreground/8 border-b px-4 py-3">
+        <span
+          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+        >
+          Options
+        </span>
+      </div>
+      {options.map((row, index) => (
+          <div
+            class:list={[
+              "flex flex-col gap-1 px-4 py-3",
+              index > 0 ? "border-foreground/8 border-t" : "",
+            ]}
+          >
+            <code class="font-mono font-semibold text-[0.8125rem] text-foreground tracking-tight">
+              {row.title}
+            </code>
+            <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+              {row.description}
+            </p>
+          </div>
+        ))}
+      <div class="border-foreground/8 border-t px-4 py-3">
+        <span
+          class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+        >
+          Controller
+        </span>
+      </div>
+      {controller.map((row, index) => (
+          <div
+            class:list={[
+              "flex flex-col gap-1 px-4 py-3",
+              index > 0 ? "border-foreground/8 border-t" : "",
+            ]}
+          >
+            <code class="font-mono font-semibold text-[0.8125rem] text-foreground tracking-tight">
+              {row.title}
+            </code>
+            <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+              {row.description}
+            </p>
+          </div>
+        ))}
+    </div>
+  </div>
+</details>

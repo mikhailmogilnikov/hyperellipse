@@ -53,13 +53,23 @@
   --corner-shape: squircle;
 }
 
+@utility scrollbar-styled {
+  @apply scrollbar-thin scrollbar-thumb-foreground/18 scrollbar-track-transparent;
+}
+
+@layer base {
+  html {
+    @apply scrollbar-styled;
+  }
+}
+
 @layer components {
   .code-block-panel {
     @apply relative rounded-2xl border border-foreground/8 bg-card;
   }
 
   .code-block-scroll {
-    @apply overflow-auto px-3 py-2.5 pe-11 font-mono text-[0.8125rem] leading-normal;
+    @apply scrollbar-styled overflow-auto px-3 py-2.5 pe-11 font-mono text-[0.8125rem] leading-normal;
   }
 
   .code-block-copy {
@@ -71,7 +81,7 @@
   }
 
   .install-command-scroll {
-    @apply min-w-0 flex-1 overflow-auto font-mono text-[0.8125rem] leading-5;
+    @apply scrollbar-styled min-w-0 flex-1 overflow-auto font-mono text-[0.8125rem] leading-5;
   }
 
   .install-command-copy {

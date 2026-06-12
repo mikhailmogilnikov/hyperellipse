@@ -14,7 +14,10 @@ interface Props {
 const { class: className } = Astro.props;
 ---
 
-<section class:list={["flex w-full flex-col gap-5", className]}>
+<section
+  class:list={["flex w-full scroll-mt-8 flex-col gap-5", className]}
+  id="quick-start"
+>
   <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
     >Quick start</span
   >

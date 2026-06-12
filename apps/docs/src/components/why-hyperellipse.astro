@@ -1,0 +1,62 @@
+---
+import { ChevronRight } from "@lucide/astro";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const rows = [
+  {
+    description:
+      "Supporting browsers get a tiny zero-specificity CSS bridge — no observers, no layout work in JS.",
+    title: "Progressive",
+  },
+  {
+    description:
+      "Superellipse math from CSS Borders 4, so Chrome and the fallback render matching corners.",
+    title: "Spec-aligned geometry",
+  },
+  {
+    description:
+      "Backgrounds, gradients, borders, box-shadow, and outline with offset — not just flat fills.",
+    title: "Real-world CSS",
+  },
+  {
+    description:
+      "The --corner-scale snippet removes the flash of overly round corners before hydration.",
+    title: "SSR-friendly",
+  },
+  {
+    description:
+      "One registerHyperellipse() call. Idempotent, SSR-safe, same controller on repeat calls.",
+    title: "Tiny API",
+  },
+] as const;
+---
+
+<details class:list={["group/why border-foreground/8 border-t", className]}>
+  <summary
+    class="detail-example-summary flex cursor-pointer list-none items-center gap-1.5 px-4 py-3 transition-colors hover:bg-foreground/3"
+  >
+    <ChevronRight
+      aria-hidden="true"
+      class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/why:rotate-90"
+    />
+    <span class="font-semibold text-[0.8125rem] text-foreground tracking-tight"
+      >Why hyperellipse</span
+    >
+  </summary>
+
+  {rows.map((row) => (
+      <div class="flex flex-col gap-1 border-foreground/8 border-t px-4 py-3">
+        <span class="font-semibold text-[0.8125rem] text-foreground tracking-tight">
+          {row.title}
+        </span>
+        <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
+          {row.description}
+        </p>
+      </div>
+    ))}
+</details>

@@ -1,11 +1,14 @@
 ---
+import { Star } from "@lucide/astro";
+import Api from "../components/api.astro";
+import BrowserSupport from "../components/browser-support.astro";
 import DetailExamples from "../components/detail-examples.astro";
-import HowItWorks from "../components/how-it-works.astro";
 import InstallCommand from "../components/install-command.astro";
 import KnownLimitations from "../components/known-limitations.astro";
 import QuickStart from "../components/quick-start.astro";
 import SquircleDemo from "../components/squircle-demo.astro";
 import SquirclePlaygroundPanels from "../components/squircle-playground-panels.astro";
+import WhyHyperellipse from "../components/why-hyperellipse.astro";
 import Layout from "../layouts/layout.astro";
 
 const title = "hyperellipse";
@@ -31,6 +34,23 @@ const title = "hyperellipse";
           browser. Supports every frontend framework. SSR-friendly.</span
         >
       </h2>
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <a
+          class="squircle inline-flex h-10 items-center justify-center rounded-xl bg-card shadow-md px-4 font-semibold text-[0.8125rem] text-foreground tracking-tight"
+          href="#quick-start"
+        >
+          Quick start
+        </a>
+        <a
+          class="squircle inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-card shadow-md px-4 font-semibold text-[0.8125rem] text-foreground tracking-tight"
+          href="https://github.com/mikhailmogilnikov/hyperellipse"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <Star aria-hidden="true" class="size-3.5" />
+          Star on GitHub
+        </a>
+      </div>
     </header>
     <section class="flex w-full flex-col gap-4" data-squircle-playground>
       <div
@@ -42,9 +62,21 @@ const title = "hyperellipse";
     </section>
     <InstallCommand />
     <QuickStart />
-    <HowItWorks />
+    <section class="flex w-full flex-col gap-3">
+      <span
+        class="text-xs font-semibold tracking-wide text-foreground uppercase"
+        >Reference</span
+      >
+      <div
+        class="squircle flex flex-col overflow-hidden rounded-2xl border border-foreground/8 bg-card"
+      >
+        <Api />
+        <WhyHyperellipse />
+        <BrowserSupport />
+        <KnownLimitations />
+      </div>
+    </section>
     <DetailExamples />
-    <KnownLimitations />
 
     <footer
       class="flex flex-col items-center h-30 justify-center gap-1 font-medium text-center text-[0.8125rem] text-foreground/40"
