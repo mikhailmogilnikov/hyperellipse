@@ -30,7 +30,7 @@ const defaultManager = packageManagers[0];
       >Install</span
     >
     <div
-      class="flex items-center gap-0.5 rounded-lg border border-foreground/8 bg-foreground/4 p-0.5"
+      class="flex items-center gap-0.5 rounded-lg border border-foreground/8 bg-foreground/4 p-0.5 squircle"
       role="tablist"
       aria-label="Package manager"
     >
@@ -38,7 +38,7 @@ const defaultManager = packageManagers[0];
           <button
             aria-controls="install-command-panel"
             aria-selected={index === 0}
-            class="rounded-md px-2.5 py-1 font-semibold text-[0.6875rem] text-foreground/45 tracking-tight transition-[background-color,color,box-shadow] duration-150 hover:text-foreground/70 data-active:bg-card data-active:text-foreground data-active:shadow-[0_1px_2px_rgb(0_0_0/0.06)]"
+            class="rounded-md px-2.5 py-1 font-semibold text-[0.6875rem] text-foreground/45 tracking-tight transition-[background-color,color,box-shadow] duration-150 hover:text-foreground/70 data-active:bg-foreground/8 data-active:text-foreground data-active:shadow-[0_1px_2px_rgb(0_0_0/0.06)]"
             data-active={index === 0 ? "" : undefined}
             data-install-tab={manager.id}
             role="tab"
@@ -51,7 +51,7 @@ const defaultManager = packageManagers[0];
   </div>
 
   <div
-    class="relative flex items-center gap-3 rounded-2xl border border-foreground/8 bg-foreground/4 px-3 py-2.5"
+    class="relative flex items-center gap-3 rounded-2xl border border-foreground/8 bg-foreground/4 px-3 py-2.5 squircle"
     id="install-command-panel"
     role="tabpanel"
   >
