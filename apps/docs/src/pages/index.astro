@@ -29,16 +29,17 @@ const title = "hyperellipse";
       >
         {title}
       </h1>
-      <h2 class="max-w-lg text-center text-lg font-medium text-balance">
-        <span class="text-foreground/50">CSS</span>
-        <code class="font-mono bg-card px-1 py-0.5 rounded-md"
-          >corner-shape</code
-        >
-        <span class="text-foreground/50">
-          polyfill. Render squircles, superellipses, scoops, notches in any
-          browser. Supports every frontend framework. SSR-friendly.</span
-        >
-      </h2>
+      <div class="flex max-w-lg flex-col gap-1 text-center">
+        <h2 class="text-lg font-medium text-balance">
+          <span class="text-foreground/50">CSS</span>
+          <code class="rounded-md bg-card px-1 py-0.5 font-mono"
+            >corner-shape</code
+          >
+          <span class="text-foreground/50"
+            >polyfill. Consistent rendering across browsers.</span
+          >
+        </h2>
+      </div>
       <div class="flex flex-wrap items-center justify-center gap-2">
         <a
           class="squircle inline-flex h-10 items-center justify-center rounded-xl bg-card shadow-md px-4 font-semibold text-[0.8125rem] text-foreground tracking-tight"
@@ -57,9 +58,14 @@ const title = "hyperellipse";
         </a>
         <InstallCta />
       </div>
-      <p class="-mb-2 text-center text-sm font-medium text-foreground/40">
-        9.3 kB gzip · Framework-agnostic · SSR-friendly
-      </p>
+      <div class="-mb-2 flex flex-col gap-1 text-center">
+        <p class="text-sm font-medium text-balance text-foreground/40">
+          Native in Chromium · Spec-accurate fallback for Safari and Firefox
+        </p>
+        <p class="text-sm font-medium text-foreground/40">
+          9.3 kB gzip · Framework-agnostic · SSR-friendly
+        </p>
+      </div>
     </header>
     <section class="flex w-full flex-col gap-4" data-squircle-demo>
       <div
