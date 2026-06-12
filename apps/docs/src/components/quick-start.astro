@@ -86,13 +86,10 @@ const { class: className } = Astro.props;
           <span class="font-normal text-foreground/40">(recommended)</span>
         </span>
         <p class="m-0 text-[0.8125rem] text-foreground/50 leading-relaxed">
-          Squircles look less round than circles at the same radius. Scale
-          <code class="font-mono text-foreground/70">border-radius</code>
-          down in unsupported browsers so the first paint already feels right —
-          import
-          <code class="font-mono text-foreground/70">hyperellipse/css</code>
-          and use
-          <code class="font-mono text-foreground/70">--corner-scale</code>.
+          Squircles look less round than circles at the same radius. Add this
+          global snippet so unsupported browsers set
+          <code class="font-mono text-foreground/70">--corner-scale: 0.6</code>
+          before JS loads.
         </p>
       </div>
 

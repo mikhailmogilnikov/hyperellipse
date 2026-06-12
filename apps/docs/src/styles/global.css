@@ -24,7 +24,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 
   --color-background: var(--theme-background);
   --color-foreground: var(--theme-foreground);
@@ -54,7 +55,7 @@
 
 @layer components {
   .code-block-panel {
-    @apply relative rounded-2xl border border-foreground/8 bg-foreground/4;
+    @apply relative rounded-2xl border border-foreground/8 bg-card;
   }
 
   .code-block-scroll {

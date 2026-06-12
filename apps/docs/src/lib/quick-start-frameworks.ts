@@ -80,7 +80,13 @@ export const stylingCode = `.button {
   border-radius: 45px;
 }`;
 
-export const ssrFallbackCode = `@import "hyperellipse/css";
+export const ssrFallbackCode = `@supports not (corner-shape: squircle) {
+  :root {
+    --corner-scale: 0.6;
+  }
+}
+
+/* or @import "hyperellipse/css"; */
 
 .button {
   --corner-shape: squircle;

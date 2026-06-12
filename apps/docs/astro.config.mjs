@@ -7,9 +7,18 @@ import { defineConfig, fontProviders } from "astro/config";
 export default defineConfig({
   fonts: [
     {
-      provider: fontProviders.google(),
-      name: "Geist",
       cssVariable: "--font-geist",
+      name: "Geist",
+      provider: fontProviders.google(),
+      styles: ["normal"],
+      weights: [400, 500, 600, 700],
+    },
+    {
+      cssVariable: "--font-geist-mono",
+      name: "Geist Mono",
+      provider: fontProviders.google(),
+      styles: ["normal"],
+      weights: [400, 500, 600, 700],
     },
   ],
   vite: {

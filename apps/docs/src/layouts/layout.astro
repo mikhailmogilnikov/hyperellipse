@@ -27,7 +27,8 @@ const { title = "Hyperellipse", class: className } = Astro.props;
       name="theme-color"
     >
     <link href="/favicon.svg" rel="icon" type="image/svg+xml">
-    <Font cssVariable="--font-geist" />
+    <Font cssVariable="--font-geist" preload />
+    <Font cssVariable="--font-geist-mono" preload />
     <title>{title}</title>
     <meta
       name="description"

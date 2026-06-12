@@ -11,7 +11,7 @@ const title = "hyperellipse";
 
 <Layout title={title}>
   <main
-    class="flex min-h-dvh items-center flex-col max-w-xl px-4 mx-auto pt-12 gap-8 tracking-tight pb-50"
+    class="flex min-h-dvh items-center flex-col max-w-xl px-4 mx-auto pt-12 gap-8 tracking-tight"
   >
     <header class="flex flex-col gap-6 items-center">
       <h1
@@ -41,5 +41,30 @@ const title = "hyperellipse";
     <InstallCommand />
     <QuickStart />
     <HowItWorks />
+
+    <footer
+      class="flex flex-col items-center h-30 justify-center gap-1 font-medium text-center text-[0.8125rem] text-foreground/40"
+    >
+      <p class="m-0">
+        Designed and developed by
+        <a
+          class="text-foreground/55 transition-colors hover:text-foreground"
+          href="https://github.com/mikhailmogilnikov"
+          rel="noopener noreferrer"
+          target="_blank"
+          >Mikhail Mogilnikov</a
+        >
+      </p>
+      <p class="m-0">
+        Source code available on
+        <a
+          class="text-foreground/55 transition-colors hover:text-foreground"
+          href="https://github.com/mikhailmogilnikov/hyperellipse"
+          rel="noopener noreferrer"
+          target="_blank"
+          >GitHub</a
+        >
+      </p>
+    </footer>
   </main>
 </Layout>
