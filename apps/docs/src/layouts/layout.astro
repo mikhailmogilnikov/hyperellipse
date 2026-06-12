@@ -17,7 +17,7 @@ const { title = "Hyperellipse", class: className } = Astro.props;
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="light dark" name="color-scheme">
     <meta
-      content="#ffffff"
+      content="#f2f2f2"
       media="(prefers-color-scheme: light)"
       name="theme-color"
     >
@@ -29,6 +29,17 @@ const { title = "Hyperellipse", class: className } = Astro.props;
     <link href="/favicon.svg" rel="icon" type="image/svg+xml">
     <Font cssVariable="--font-geist" />
     <title>{title}</title>
+    <meta
+      name="description"
+      content="CSS polyfill for squircles, superellipses, scoops, notches in any browser. Supports every frontend framework. SSR-friendly. Open-source."
+    >
+    <meta
+      name="keywords"
+      content="CSS, polyfill, squircles, superellipses, scoops, notches, browser, frontend, framework, SSR, open-source"
+    >
+    <meta name="author" content="Mikhail Mogilnikov">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
   </head>
   <body
     class:list={[

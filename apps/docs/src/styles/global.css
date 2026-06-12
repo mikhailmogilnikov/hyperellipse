@@ -7,6 +7,7 @@
   --theme-card: hsl(0, 0%, 100%);
   --theme-default: hsl(0, 0%, 88%);
   --theme-border: hsl(0, 0%, 88%);
+  --theme-muted-foreground: hsl(0, 0%, 42%);
   --theme-shadow: rgb(0 0 0 / 0.25);
 }
 
@@ -17,6 +18,7 @@
     --theme-card: hsl(0, 0%, 5%);
     --theme-default: hsl(0, 0%, 15%);
     --theme-border: hsl(0, 0%, 31%);
+    --theme-muted-foreground: hsl(0, 0%, 58%);
     --theme-shadow: rgb(0 0 0 / 0.65);
   }
 }
@@ -29,6 +31,7 @@
   --color-card: var(--theme-card);
   --color-border: var(--theme-border);
   --color-default: var(--theme-default);
+  --color-muted-foreground: var(--theme-muted-foreground);
 
   --corner-radius-xs: 0.25rem;
   --corner-radius-sm: 0.5rem;
