@@ -1,4 +1,5 @@
 ---
+import InstallCommand from "../components/install-command.astro";
 import SquircleDemo from "../components/squircle-demo.astro";
 import SquirclePlaygroundPanels from "../components/squircle-playground-panels.astro";
 import Layout from "../layouts/layout.astro";
@@ -8,7 +9,7 @@ const title = "hyperellipse";
 
 <Layout title={title}>
   <main
-    class="flex min-h-dvh items-center flex-col max-w-xl px-4 mx-auto pt-12 gap-8 tracking-tight"
+    class="flex min-h-dvh items-center flex-col max-w-xl px-4 mx-auto pt-12 gap-8 tracking-tight pb-50"
   >
     <header class="flex flex-col gap-6 items-center">
       <h1
@@ -35,5 +36,6 @@ const title = "hyperellipse";
       </div>
       <SquirclePlaygroundPanels />
     </section>
+    <InstallCommand />
   </main>
 </Layout>

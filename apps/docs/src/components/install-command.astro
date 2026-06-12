@@ -1,0 +1,210 @@
+---
+import { Check, Copy } from "@lucide/astro";
+
+interface Props {
+  class?: string;
+  packageName?: string;
+}
+
+const { class: className, packageName = "hyperellipse" } = Astro.props;
+
+const packageManagers = [
+  { id: "npm", label: "npm", command: `npm install ${packageName}` },
+  { id: "pnpm", label: "pnpm", command: `pnpm add ${packageName}` },
+  { id: "yarn", label: "yarn", command: `yarn add ${packageName}` },
+  { id: "bun", label: "bun", command: `bun add ${packageName}` },
+] as const;
+
+const defaultManager = packageManagers[0];
+---
+
+<section
+  class:list={[
+    "flex w-full flex-col gap-3",
+    className,
+  ]}
+  data-install-command
+>
+  <div class="flex items-center justify-between gap-3">
+    <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
+      >Install</span
+    >
+    <div
+      class="flex items-center gap-0.5 rounded-lg border border-foreground/8 bg-foreground/4 p-0.5"
+      role="tablist"
+      aria-label="Package manager"
+    >
+      {packageManagers.map((manager, index) => (
+          <button
+            aria-controls="install-command-panel"
+            aria-selected={index === 0}
+            class="rounded-md px-2.5 py-1 font-semibold text-[0.6875rem] text-foreground/45 tracking-tight transition-[background-color,color,box-shadow] duration-150 hover:text-foreground/70 data-active:bg-card data-active:text-foreground data-active:shadow-[0_1px_2px_rgb(0_0_0/0.06)]"
+            data-active={index === 0 ? "" : undefined}
+            data-install-tab={manager.id}
+            role="tab"
+            type="button"
+          >
+            {manager.label}
+          </button>
+        ))}
+    </div>
+  </div>
+
+  <div
+    class="relative flex items-center gap-3 rounded-2xl border border-foreground/8 bg-foreground/4 px-3 py-2.5"
+    id="install-command-panel"
+    role="tabpanel"
+  >
+    <pre
+      class="m-0 min-w-0 flex-1 overflow-x-auto p-0 font-mono text-[0.8125rem] leading-normal whitespace-pre text-foreground/85"
+    ><code data-install-code>{defaultManager.command}</code></pre>
+    <button
+      aria-label="Copy install command"
+      class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-foreground/8 bg-card text-foreground/55 transition-[background-color,border-color,color] duration-150 hover:border-foreground/12 hover:text-foreground"
+      data-install-copy
+      type="button"
+    >
+      <Copy aria-hidden="true" class="size-3.5" data-install-copy-icon />
+      <Check
+        aria-hidden="true"
+        class="hidden size-3.5 text-[#34c759]"
+        data-install-check-icon
+      />
+    </button>
+  </div>
+
+  {packageManagers.map((manager) => (
+      <template data-install-template={manager.id}>{manager.command}</template>
+    ))}
+</section>
+
+<script>
+  const COPY_FEEDBACK_MS = 2000;
+
+  const collectInstallTemplates = (root: HTMLElement) => {
+    const templates = new Map<string, string>();
+
+    for (const template of root.querySelectorAll("[data-install-template]")) {
+      if (!(template instanceof HTMLTemplateElement)) {
+        continue;
+      }
+
+      const manager = template.dataset.installTemplate;
+      if (!manager) {
+        continue;
+      }
+
+      templates.set(manager, template.content.textContent?.trim() ?? "");
+    }
+
+    return templates;
+  };
+
+  const setupInstallTabs = (
+    tabs: NodeListOf<Element>,
+    templates: Map<string, string>,
+    code: HTMLElement
+  ) => {
+    const setActiveTab = (managerId: string) => {
+      const command = templates.get(managerId);
+      if (!command) {
+        return;
+      }
+
+      code.textContent = command;
+
+      for (const tab of tabs) {
+        if (!(tab instanceof HTMLButtonElement)) {
+          continue;
+        }
+
+        const isActive = tab.dataset.installTab === managerId;
+        tab.setAttribute("aria-selected", String(isActive));
+        tab.toggleAttribute("data-active", isActive);
+      }
+    };
+
+    for (const tab of tabs) {
+      if (!(tab instanceof HTMLButtonElement)) {
+        continue;
+      }
+
+      tab.addEventListener("click", () => {
+        const managerId = tab.dataset.installTab;
+        if (managerId) {
+          setActiveTab(managerId);
+        }
+      });
+    }
+  };
+
+  const setupInstallCopy = (
+    copyButton: HTMLButtonElement,
+    code: HTMLElement
+  ) => {
+    const copyIcon = copyButton.querySelector("[data-install-copy-icon]");
+    const checkIcon = copyButton.querySelector("[data-install-check-icon]");
+    let copyTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const setCopied = (copied: boolean) => {
+      copyIcon?.classList.toggle("hidden", copied);
+      checkIcon?.classList.toggle("hidden", !copied);
+    };
+
+    copyButton.addEventListener("click", async () => {
+      const command = code.textContent?.trim();
+      if (!command) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(command);
+      } catch {
+        return;
+      }
+
+      setCopied(true);
+
+      if (copyTimeout) {
+        clearTimeout(copyTimeout);
+      }
+
+      copyTimeout = setTimeout(() => {
+        setCopied(false);
+      }, COPY_FEEDBACK_MS);
+    });
+  };
+
+  const initInstallCommand = (root: HTMLElement) => {
+    if (root.dataset.installReady === "true") {
+      return;
+    }
+
+    root.dataset.installReady = "true";
+
+    const code = root.querySelector("[data-install-code]");
+    const copyButton = root.querySelector("[data-install-copy]");
+    const tabs = root.querySelectorAll("[data-install-tab]");
+
+    if (!(code instanceof HTMLElement)) {
+      return;
+    }
+
+    setupInstallTabs(tabs, collectInstallTemplates(root), code);
+
+    if (copyButton instanceof HTMLButtonElement) {
+      setupInstallCopy(copyButton, code);
+    }
+  };
+
+  const initInstallCommands = () => {
+    for (const root of document.querySelectorAll("[data-install-command]")) {
+      if (root instanceof HTMLElement) {
+        initInstallCommand(root);
+      }
+    }
+  };
+
+  initInstallCommands();
+  document.addEventListener("astro:page-load", initInstallCommands);
+</script>
