@@ -1,6 +1,10 @@
-# hyperellipse
+<p align="left">
+  <a href="https://hyperellipse.vercel.app">
+    <img src="https://hyperellipse.vercel.app/hyperellipse_logo.svg" alt="hyperellipse" height="48">
+  </a>
+</p>
 
-[![hyperellipse documentation](https://hyperellipse.vercel.app/og.png)](https://hyperellipse.vercel.app)
+# hyperellipse
 
 **Docs:** [hyperellipse.vercel.app](https://hyperellipse.vercel.app)
 
