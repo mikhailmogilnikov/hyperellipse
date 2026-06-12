@@ -5,10 +5,12 @@ import BrowserSupport from "../components/browser-support.astro";
 import DetailExamples from "../components/detail-examples.astro";
 import HyperellipseLogo from "../components/hyperellipse-logo.astro";
 import InstallCommand from "../components/install-command.astro";
+import InstallCta from "../components/install-cta.astro";
 import KnownLimitations from "../components/known-limitations.astro";
 import QuickStart from "../components/quick-start.astro";
 import SquircleDemo from "../components/squircle-demo.astro";
 import SquircleDemoPanels from "../components/squircle-demo-panels.astro";
+import ToggleSwitch from "../components/toggle-switch.astro";
 import WhyHyperellipse from "../components/why-hyperellipse.astro";
 import Layout from "../layouts/layout.astro";
 
@@ -27,7 +29,7 @@ const title = "hyperellipse";
       >
         {title}
       </h1>
-      <h2 class="max-w-lg text-center text-lg font-semibold text-balance">
+      <h2 class="max-w-lg text-center text-lg font-medium text-balance">
         <span class="text-foreground/50">CSS</span>
         <code class="font-mono bg-card px-1 py-0.5 rounded-md"
           >corner-shape</code
@@ -53,12 +55,19 @@ const title = "hyperellipse";
           <Star aria-hidden="true" class="size-3.5" />
           Star on GitHub
         </a>
+        <InstallCta />
       </div>
+      <p class="-mb-2 text-center text-sm font-medium text-foreground/40">
+        9.3 kB gzip · Framework-agnostic · SSR-friendly
+      </p>
     </header>
     <section class="flex w-full flex-col gap-4" data-squircle-demo>
       <div
-        class="card squircle flex h-80 w-full items-center justify-center rounded-3xl bg-card"
+        class="card squircle relative flex h-80 w-full items-center justify-center rounded-3xl bg-card"
       >
+        <div class="absolute top-4 right-4 z-10">
+          <ToggleSwitch checked label="Corner shape" name="hyperellipse" />
+        </div>
         <SquircleDemo />
       </div>
       <SquircleDemoPanels />

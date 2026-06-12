@@ -123,6 +123,10 @@
     @apply absolute top-1/2 right-2.5 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border border-foreground/8 bg-card text-foreground/55 shadow-[0_1px_2px_rgb(0_0_0/0.06)] transition-[background-color,border-color,color] duration-150 hover:border-foreground/12 hover:text-foreground;
   }
 
+  .install-cta-copy {
+    @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-foreground/55 transition-[background-color,color] duration-150 hover:bg-foreground/6 hover:text-foreground;
+  }
+
   .code-block .shiki {
     padding: 0;
     margin: 0;

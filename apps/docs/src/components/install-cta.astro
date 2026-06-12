@@ -1,0 +1,41 @@
+---
+import { Check, Copy } from "@lucide/astro";
+import { highlightCode } from "../lib/highlight";
+
+interface Props {
+  class?: string;
+  packageName?: string;
+}
+
+const { class: className, packageName = "hyperellipse" } = Astro.props;
+
+const command = `npm i ${packageName}`;
+const highlighted = await highlightCode(command, "shell");
+---
+
+<div
+  class:list={[
+    "install-cta squircle inline-flex h-10 items-center gap-1 rounded-xl bg-card py-1 pl-3.5 pr-1 shadow-md",
+    className,
+  ]}
+  data-code-block
+  data-code-source={command}
+>
+  <div
+    class="code-block m-0 min-w-0 font-mono text-[0.8125rem] leading-none tracking-tight"
+    set:html={highlighted}
+  />
+  <button
+    aria-label="Copy install command"
+    class="install-cta-copy"
+    data-code-copy
+    type="button"
+  >
+    <Copy aria-hidden="true" class="size-3.5" data-code-copy-icon />
+    <Check
+      aria-hidden="true"
+      class="hidden size-3.5 text-[#34c759]"
+      data-code-check-icon
+    />
+  </button>
+</div>

@@ -1,13 +1,22 @@
 ---
+import DemoSelect from "./demo-select.astro";
 import ScrubInput from "./scrub-input.astro";
-import ToggleSwitch from "./toggle-switch.astro";
 
-const defaultRadius = 32;
+const defaultRadius = 60;
 const defaultCurve = 2;
+const defaultCornerShapeKind = "superellipse";
 const defaultBorder = 0;
 const defaultShadow = 0;
 const defaultOutline = 0;
 const defaultOutlineOffset = 0;
+
+const cornerShapeOptions = [
+  { value: "superellipse", label: "superellipse" },
+  { value: "bevel", label: "bevel" },
+  { value: "scoop", label: "scoop" },
+  { value: "notch", label: "notch" },
+  { value: "mixed", label: "Per-corner mix" },
+] as const;
 ---
 
 <div
@@ -15,7 +24,7 @@ const defaultOutlineOffset = 0;
   data-squircle-panels
 >
   <div
-    class="flex max-[576px]:w-full w-54 shrink-0 flex-col gap-3 squircle rounded-3xl bg-card p-4"
+    class="flex max-[576px]:min-h-34 max-[576px]:w-full w-54 shrink-0 flex-col gap-3 squircle rounded-3xl bg-card p-4"
   >
     <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
       >CSS</span
@@ -32,21 +41,31 @@ const defaultOutlineOffset = 0;
       >Settings</span
     >
     <div class="flex flex-col gap-3">
-      <ToggleSwitch checked label="Enable hyperellipse" name="hyperellipse" />
       <div
-        class="transition-opacity duration-150 data-disabled:pointer-events-none data-disabled:opacity-40"
-        data-curve-control
+        class="flex flex-col gap-3 transition-opacity duration-150 data-disabled:pointer-events-none data-disabled:opacity-40"
+        data-corner-shape-controls
       >
-        <ScrubInput
-          class="**:data-scrub-value:w-10"
-          label="Curve"
-          max={10}
-          min={1}
-          name="curve"
-          step={0.1}
-          unit=""
-          value={defaultCurve}
+        <DemoSelect
+          label="Shape"
+          name="corner-shape-kind"
+          options={[...cornerShapeOptions]}
+          value={defaultCornerShapeKind}
         />
+        <div
+          class="transition-opacity duration-150 data-disabled:pointer-events-none data-disabled:opacity-40"
+          data-curve-control
+        >
+          <ScrubInput
+            class="**:data-scrub-value:w-10"
+            label="Curve"
+            max={10}
+            min={1}
+            name="curve"
+            step={0.1}
+            unit=""
+            value={defaultCurve}
+          />
+        </div>
       </div>
       <ScrubInput
         label="Border radius"
@@ -98,8 +117,13 @@ const defaultOutlineOffset = 0;
 </div>
 
 <script>
+  type CornerShapeKind = "superellipse" | "bevel" | "scoop" | "notch" | "mixed";
+
+  const MIXED_CORNER_SHAPE = "squircle bevel scoop notch";
+
   interface DemoPanelState {
     border: number;
+    cornerShapeKind: CornerShapeKind;
     curve: number;
     hyperellipse: boolean;
     outline: number;
@@ -116,7 +140,26 @@ const defaultOutlineOffset = 0;
       ? String(curve)
       : curve.toFixed(1).replace(TRAILING_ZERO_RE, "");
 
-  const formatCornerShape = (curve: number) => {
+  const formatCornerShape = ({
+    cornerShapeKind,
+    curve,
+  }: Pick<DemoPanelState, "cornerShapeKind" | "curve">) => {
+    if (cornerShapeKind === "bevel") {
+      return "bevel";
+    }
+
+    if (cornerShapeKind === "scoop") {
+      return "scoop";
+    }
+
+    if (cornerShapeKind === "notch") {
+      return "notch";
+    }
+
+    if (cornerShapeKind === "mixed") {
+      return MIXED_CORNER_SHAPE;
+    }
+
     if (curve === 1) {
       return "round";
     }
@@ -133,6 +176,7 @@ const defaultOutlineOffset = 0;
 
   const formatCss = ({
     border,
+    cornerShapeKind,
     curve,
     hyperellipse,
     outline,
@@ -143,7 +187,9 @@ const defaultOutlineOffset = 0;
     const lines = [".card {"];
 
     if (hyperellipse) {
-      lines.push(`  --corner-shape: ${formatCornerShape(curve)};`);
+      lines.push(
+        `  --corner-shape: ${formatCornerShape({ cornerShapeKind, curve })};`
+      );
     }
 
     lines.push(`  border-radius: ${radius}px;`);
@@ -203,14 +249,24 @@ const defaultOutlineOffset = 0;
     const outlineOffsetControl = root.querySelector<HTMLElement>(
       '[data-scrub-input][data-name="outline-offset"]'
     );
-    const hyperellipseToggle = root.querySelector<HTMLInputElement>(
+    const hyperellipseToggle = demo.querySelector<HTMLInputElement>(
       '[data-toggle-input][name="hyperellipse"]'
     );
+    const cornerShapeKindControl = root.querySelector<HTMLElement>(
+      '[data-demo-select][data-name="corner-shape-kind"]'
+    );
+    const cornerShapeKindSelect =
+      cornerShapeKindControl?.querySelector<HTMLSelectElement>(
+        "[data-demo-select-value]"
+      );
     const curveControl = root.querySelector<HTMLElement>(
       '[data-scrub-input][data-name="curve"]'
     );
     const curveWrapper = root.querySelector<HTMLElement>(
       "[data-curve-control]"
+    );
+    const cornerShapeControls = root.querySelector<HTMLElement>(
+      "[data-corner-shape-controls]"
     );
 
     if (
@@ -223,8 +279,11 @@ const defaultOutlineOffset = 0;
         outlineControl &&
         outlineOffsetControl &&
         hyperellipseToggle &&
+        cornerShapeKindControl &&
+        cornerShapeKindSelect &&
         curveControl &&
-        curveWrapper
+        curveWrapper &&
+        cornerShapeControls
       )
     ) {
       return;
@@ -248,20 +307,56 @@ const defaultOutlineOffset = 0;
       return Number.isFinite(parsed) ? parsed : 2;
     };
 
-    const cornerShape = block.style.getPropertyValue("--corner-shape").trim();
+    const parseCornerShapeKind = (
+      value: string
+    ): Pick<DemoPanelState, "cornerShapeKind" | "curve"> => {
+      if (value === "bevel") {
+        return { cornerShapeKind: "bevel", curve: 2 };
+      }
+
+      if (value === "scoop") {
+        return { cornerShapeKind: "scoop", curve: 2 };
+      }
+
+      if (value === "notch") {
+        return { cornerShapeKind: "notch", curve: 2 };
+      }
+
+      if (value.replace(/\s+/g, " ").trim() === MIXED_CORNER_SHAPE) {
+        return { cornerShapeKind: "mixed", curve: 2 };
+      }
+
+      return {
+        cornerShapeKind: "superellipse",
+        curve: parseCurve(value),
+      };
+    };
+
+    const cornerShape =
+      block.style.getPropertyValue("--corner-shape").trim() ||
+      block.style.getPropertyValue("corner-shape").trim();
+    const parsedCornerShape = parseCornerShapeKind(
+      cornerShape.length > 0 ? cornerShape : "squircle"
+    );
 
     const state: DemoPanelState = {
-      radius: parseCssVar(block, "--radius", 32),
+      radius: parseCssVar(block, "--radius", 60),
       border: parseCssVar(block, "--border-width", 0),
       shadow: parseCssVar(block, "--shadow-size", 0),
       outline: parseCssVar(block, "--outline-width", 0),
       outlineOffset: parseCssVar(block, "--outline-offset", 0),
       hyperellipse: cornerShape.length > 0,
-      curve: parseCurve(cornerShape),
+      cornerShapeKind: parsedCornerShape.cornerShapeKind,
+      curve: parsedCornerShape.curve,
     };
 
     hyperellipseToggle.checked = state.hyperellipse;
-    curveWrapper.toggleAttribute("data-disabled", !state.hyperellipse);
+    cornerShapeKindSelect.value = state.cornerShapeKind;
+    cornerShapeControls.toggleAttribute("data-disabled", !state.hyperellipse);
+    curveWrapper.toggleAttribute(
+      "data-disabled",
+      !state.hyperellipse || state.cornerShapeKind !== "superellipse"
+    );
 
     const syncControl = (control: HTMLElement, value: number) => {
       control.dataset.value = String(value);
@@ -278,15 +373,23 @@ const defaultOutlineOffset = 0;
     };
 
     const apply = () => {
-      curveWrapper.toggleAttribute("data-disabled", !state.hyperellipse);
+      cornerShapeControls.toggleAttribute("data-disabled", !state.hyperellipse);
+      curveWrapper.toggleAttribute(
+        "data-disabled",
+        !state.hyperellipse || state.cornerShapeKind !== "superellipse"
+      );
 
       if (state.hyperellipse) {
-        block.style.setProperty(
-          "--corner-shape",
-          formatCornerShape(state.curve)
-        );
+        const cornerShapeValue = formatCornerShape({
+          cornerShapeKind: state.cornerShapeKind,
+          curve: state.curve,
+        });
+
+        block.style.setProperty("--corner-shape", cornerShapeValue);
+        block.style.setProperty("corner-shape", cornerShapeValue);
       } else {
         block.style.removeProperty("--corner-shape");
+        block.style.removeProperty("corner-shape");
       }
 
       block.style.setProperty("--radius", `${state.radius}px`);
@@ -307,6 +410,13 @@ const defaultOutlineOffset = 0;
 
     curveControl.addEventListener("scrub-input:change", (event) => {
       state.curve = (event as CustomEvent<{ value: number }>).detail.value;
+      apply();
+    });
+
+    cornerShapeKindControl.addEventListener("demo-select:change", (event) => {
+      state.cornerShapeKind = (
+        event as CustomEvent<{ value: CornerShapeKind }>
+      ).detail.value;
       apply();
     });
 

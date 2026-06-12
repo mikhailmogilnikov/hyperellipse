@@ -1,0 +1,103 @@
+---
+import { ChevronDown } from "@lucide/astro";
+
+interface Option {
+  label: string;
+  value: string;
+}
+
+interface Props {
+  class?: string;
+  id?: string;
+  label: string;
+  name?: string;
+  options: Option[];
+  value?: string;
+}
+
+const {
+  class: className,
+  id,
+  label,
+  name,
+  options,
+  value = options[0]?.value ?? "",
+} = Astro.props;
+
+const selectId =
+  id ?? `select-${name ?? label.toLowerCase().replaceAll(/\s+/g, "-")}`;
+
+const fieldClass =
+  "relative inline-flex h-7 min-w-[7rem] shrink-0 cursor-pointer items-center rounded-md border border-foreground/8 bg-foreground/4 py-0 pr-7 pl-2 transition-[border-color,background-color,box-shadow] duration-150 hover:border-foreground/12 hover:bg-foreground/6 focus-within:border-[#007aff]/45 focus-within:bg-foreground/5 focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,#007aff_18%,transparent)]";
+---
+
+<div
+  class:list={[className]}
+  data-demo-select
+  data-name={name}
+  data-value={value}
+  id={id}
+>
+  <label class="flex items-center justify-between gap-3" for={selectId}>
+    <span
+      class="shrink-0 text-[0.8125rem] font-medium tracking-tight whitespace-nowrap text-foreground/55"
+      >{label}</span
+    >
+    <div class={fieldClass}>
+      <select
+        class="w-full min-w-0 cursor-pointer appearance-none border-0 bg-transparent py-0 pr-0 pl-0 text-xs font-medium tracking-tight text-foreground outline-none"
+        data-demo-select-value
+        id={selectId}
+        name={name}
+      >
+        {options.map((option) => (
+            <option selected={option.value === value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+      </select>
+      <ChevronDown
+        aria-hidden="true"
+        class="pointer-events-none absolute top-1/2 right-1.5 size-3.5 -translate-y-1/2 text-foreground/45"
+        stroke-width={2}
+      />
+    </div>
+  </label>
+</div>
+
+<script>
+  const initDemoSelect = (root: HTMLElement) => {
+    const select = root.querySelector<HTMLSelectElement>(
+      "[data-demo-select-value]"
+    );
+
+    if (!select) {
+      return;
+    }
+
+    const syncValue = (dispatch = true) => {
+      root.dataset.value = select.value;
+
+      if (dispatch) {
+        root.dispatchEvent(
+          new CustomEvent("demo-select:change", {
+            bubbles: true,
+            detail: { value: select.value },
+          })
+        );
+      }
+    };
+
+    select.addEventListener("change", () => {
+      syncValue();
+    });
+
+    syncValue(false);
+  };
+
+  for (const demoSelect of document.querySelectorAll<HTMLElement>(
+    "[data-demo-select]"
+  )) {
+    initDemoSelect(demoSelect);
+  }
+</script>
