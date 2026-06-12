@@ -1,0 +1,75 @@
+---
+import { ChevronRight } from "@lucide/astro";
+import { detailExampleGroups } from "../lib/detail-examples";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<section
+  class:list={["flex w-full flex-col gap-3", className]}
+  data-detail-examples
+>
+  <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
+    >Examples</span
+  >
+
+  <div
+    class="squircle flex flex-col overflow-hidden rounded-2xl border border-foreground/8 bg-card"
+  >
+    {detailExampleGroups.map((group) => (
+        <details class="group/details border-foreground/8 border-t first:border-t-0">
+          <summary
+            class="detail-example-summary flex cursor-pointer list-none items-center gap-1.5 px-4 py-3 font-semibold text-[0.8125rem] text-foreground tracking-tight transition-colors hover:bg-foreground/3"
+          >
+            <ChevronRight
+              aria-hidden="true"
+              class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/details:rotate-90"
+            />
+            {group.title}
+          </summary>
+
+          <div class="grid grid-cols-2 gap-3 px-4 pt-1 pb-4">
+            {group.examples.map((example) => (
+              <figure
+                class:list={["m-0 flex flex-col gap-2", example.figureClass]}
+              >
+                <div
+                  aria-hidden="true"
+                  class={example.previewClass}
+                />
+                <figcaption class="flex flex-col gap-0.5">
+                  <span class="font-semibold text-[0.75rem] text-foreground tracking-tight">
+                    {example.caption}
+                  </span>
+                  <code
+                    class="font-mono text-[0.6875rem] text-foreground/45 leading-snug"
+                  >
+                    {example.label}
+                  </code>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </details>
+      ))}
+  </div>
+</section>
+
+<script>
+  import { registerHyperellipse } from "hyperellipse";
+
+  const refreshExamples = () => {
+    registerHyperellipse().refresh();
+  };
+
+  const root = document.querySelector("[data-detail-examples]");
+  if (root) {
+    for (const details of root.querySelectorAll("details")) {
+      details.addEventListener("toggle", refreshExamples);
+    }
+  }
+</script>

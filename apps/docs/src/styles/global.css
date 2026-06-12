@@ -114,6 +114,75 @@
     }
   }
 
+  .detail-example-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .detail-example {
+    width: 100%;
+    height: 7rem;
+    background-color: var(--color-default);
+    border-radius: calc(28px * var(--corner-scale, 1));
+  }
+
+  .detail-example-shape-squircle,
+  .detail-example-deco-fill,
+  .detail-example-deco-border,
+  .detail-example-deco-shadow,
+  .detail-example-deco-outline,
+  .detail-example-deco-gradient,
+  .detail-example-deco-pill {
+    --corner-shape: squircle;
+    corner-shape: squircle;
+  }
+
+  .detail-example-shape-superellipse {
+    --corner-shape: superellipse(4);
+    corner-shape: superellipse(4);
+  }
+
+  .detail-example-shape-scoop {
+    --corner-shape: scoop;
+    corner-shape: scoop;
+  }
+
+  .detail-example-shape-notch {
+    --corner-shape: notch;
+    corner-shape: notch;
+  }
+
+  .detail-example-shape-mixed {
+    --corner-shape: squircle bevel scoop notch;
+    corner-shape: squircle bevel scoop notch;
+  }
+
+  .detail-example-deco-border {
+    border: 2px solid
+      color-mix(in srgb, var(--color-foreground) 20%, transparent);
+  }
+
+  .detail-example-deco-shadow {
+    box-shadow: 0 8px 20px var(--theme-shadow);
+  }
+
+  .detail-example-deco-outline {
+    outline: 2px solid
+      color-mix(in srgb, var(--color-foreground) 25%, transparent);
+    outline-offset: 5px;
+  }
+
+  .detail-example-deco-gradient {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-foreground) 15%, transparent),
+      color-mix(in srgb, var(--color-foreground) 5%, transparent)
+    );
+  }
+
+  .detail-example-deco-pill {
+    border-radius: calc(50% * var(--corner-scale, 1));
+  }
+
   .squircle {
     --radius-xs: calc(var(--corner-radius-xs) * var(--corner-scale, 1));
     --radius-sm: calc(var(--corner-radius-sm) * var(--corner-scale, 1));
