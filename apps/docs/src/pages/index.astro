@@ -1,8 +1,10 @@
 ---
 import { Star } from "@lucide/astro";
+import AgentSkill from "../components/agent-skill.astro";
 import Api from "../components/api.astro";
 import BrowserSupport from "../components/browser-support.astro";
 import DetailExamples from "../components/detail-examples.astro";
+import HowItWorks from "../components/how-it-works.astro";
 import HyperellipseLogo from "../components/hyperellipse-logo.astro";
 import InstallCommand from "../components/install-command.astro";
 import InstallCta from "../components/install-cta.astro";
@@ -78,7 +80,17 @@ const title = "hyperellipse";
       </div>
       <SquircleDemoPanels />
     </section>
+    <section class="flex w-full flex-col gap-3">
+      <h2 class="docs-section-label">Overview</h2>
+      <div
+        class="squircle flex flex-col overflow-hidden rounded-2xl border border-foreground/8 bg-card"
+      >
+        <WhyHyperellipse class="border-t-0" />
+        <BrowserSupport class="border-foreground/8 border-t" />
+      </div>
+    </section>
     <InstallCommand />
+    <AgentSkill />
     <QuickStart />
     <section class="flex w-full flex-col gap-3">
       <h2 class="docs-section-label">Reference</h2>
@@ -86,8 +98,7 @@ const title = "hyperellipse";
         class="squircle flex flex-col overflow-hidden rounded-2xl border border-foreground/8 bg-card"
       >
         <Api />
-        <WhyHyperellipse />
-        <BrowserSupport />
+        <HowItWorks />
         <KnownLimitations />
       </div>
     </section>

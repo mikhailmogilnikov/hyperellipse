@@ -10,33 +10,33 @@ const { class: className } = Astro.props;
 const rows = [
   {
     description:
-      "Supporting browsers get a tiny zero-specificity CSS bridge — no observers, no layout work in JS.",
-    title: "Progressive",
+      "Set --corner-shape next to border-radius, call registerHyperellipse() once. Chrome keeps native rendering through a tiny CSS bridge — no observers, no layout thrashing. Everywhere else, a stylesheet scan drives a clip-path fallback.",
+    title: "One CSS pattern, two paths",
   },
   {
     description:
-      "Superellipse math from CSS Borders 4, so Chrome and the fallback render matching corners.",
-    title: "Spec-aligned geometry",
+      "Same border-radius, same squircle in Safari as in Chrome. The fallback tracks CSS Borders 4 superellipse curves instead of hand-rolling clip-path.",
+    title: "Matches Chromium",
   },
   {
     description:
-      "Backgrounds, gradients, borders, box-shadow, and outline with offset — not just flat fills.",
+      "Gradients, borders, box-shadow, outline with offset — it shapes the box, not an SVG layer on top.",
     title: "Real-world CSS",
   },
   {
     description:
-      "The --corner-scale snippet removes the flash of overly round corners before hydration.",
+      "Squircles read less round at the same radius. Import hyperellipse/css so SSR doesn't paint a circle before JS kicks in.",
     title: "SSR-friendly",
   },
   {
     description:
-      "One registerHyperellipse() call. Idempotent, SSR-safe, same controller on repeat calls.",
+      "One function call. registerHyperellipse() is the whole integration — idempotent, no-op on the server, nothing per-element.",
     title: "Tiny API",
   },
 ] as const;
 ---
 
-<details class:list={["group/why border-foreground/8 border-t", className]}>
+<details class:list={["group/why", className]}>
   <summary
     class="detail-example-summary flex cursor-pointer list-none items-center gap-1.5 px-4 py-3 transition-colors hover:bg-foreground/3"
   >
@@ -44,17 +44,24 @@ const rows = [
       aria-hidden="true"
       class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/why:rotate-90"
     />
-    <h3 class="docs-heading">Why hyperellipse</h3>
+    <h3 class="docs-heading">Why hyperellipse?</h3>
   </summary>
 
+  <div class="border-foreground/8 border-t px-4 py-3">
+    <p class="docs-text m-0">
+      <code class="font-mono text-foreground/70">corner-shape</code>
+      adds squircles, scoops, and superellipses —
+      <code class="font-mono text-foreground/70">border-radius</code>
+      can't draw those. Only Chromium supports it today; Safari and Firefox drop
+      the property at parse time. hyperellipse makes one stylesheet work
+      everywhere.
+    </p>
+  </div>
+
   {rows.map((row) => (
-      <div class="flex flex-col gap-1 border-foreground/8 border-t px-4 py-3">
-        <h4 class="docs-heading">
-          {row.title}
-        </h4>
-        <p class="docs-text m-0">
-          {row.description}
-        </p>
-      </div>
-    ))}
+    <div class="flex flex-col gap-1 border-foreground/8 border-t px-4 py-3">
+      <h4 class="docs-heading">{row.title}</h4>
+      <p class="docs-text m-0">{row.description}</p>
+    </div>
+  ))}
 </details>

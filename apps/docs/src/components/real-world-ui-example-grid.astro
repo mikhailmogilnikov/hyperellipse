@@ -1,0 +1,91 @@
+---
+import { Check, Plus, Search } from "@lucide/astro";
+import { realWorldUiExamples } from "../lib/real-world-ui-examples";
+---
+
+<div class="grid grid-cols-1 gap-3 px-4 pt-4 pb-4 min-[576px]:grid-cols-2">
+  {realWorldUiExamples.map((example) => (
+      <figure class:list={["ui-example-figure m-0", example.figureClass]}>
+        <div class="ui-example-stage">
+          {
+            example.variant === "primary-button" ? (
+              <button
+                class="ui-example ui-example-button ui-example-button-primary squircle"
+                tabindex="-1"
+                type="button"
+              >
+                Continue
+              </button>
+            ) : null
+          }
+          {
+            example.variant === "secondary-button" ? (
+              <button
+                class="ui-example ui-example-button ui-example-button-secondary squircle"
+                tabindex="-1"
+                type="button"
+              >
+                Get started
+              </button>
+            ) : null
+          }
+          {
+            example.variant === "search" ? (
+              <div aria-hidden="true" class="ui-example ui-example-search squircle">
+                <Search class="ui-example-search-icon" />
+                <span>Search projects</span>
+              </div>
+            ) : null
+          }
+          {
+            example.variant === "icon-button" ? (
+              <button
+                class="ui-example ui-example-icon-button squircle"
+                tabindex="-1"
+                type="button"
+              >
+                <Plus class="ui-example-icon-button-icon" />
+              </button>
+            ) : null
+          }
+          {
+            example.variant === "avatar" ? (
+              <div aria-hidden="true" class="ui-example ui-example-avatar squircle">
+                HM
+              </div>
+            ) : null
+          }
+          {
+            example.variant === "badge" ? (
+              <span class="ui-example ui-example-badge squircle">Beta</span>
+            ) : null
+          }
+          {
+            example.variant === "list-item" ? (
+              <div aria-hidden="true" class="ui-example ui-example-list-item squircle">
+                <div class="ui-example-list-item-thumb squircle" />
+                <div class="ui-example-list-item-copy">
+                  <span class="ui-example-list-item-title">Design system</span>
+                  <span class="ui-example-list-item-subtitle">Updated today</span>
+                </div>
+              </div>
+            ) : null
+          }
+          {
+            example.variant === "toast" ? (
+              <div aria-hidden="true" class="ui-example ui-example-toast squircle">
+                <Check class="ui-example-toast-icon" />
+                <span>Squircles enabled</span>
+              </div>
+            ) : null
+          }
+        </div>
+        <figcaption class="flex flex-col gap-0.5">
+          <h4 class="docs-heading text-sm">{example.caption}</h4>
+          <code class="font-mono text-foreground/45 text-sm leading-snug">
+            {example.label}
+          </code>
+        </figcaption>
+      </figure>
+    ))}
+</div>

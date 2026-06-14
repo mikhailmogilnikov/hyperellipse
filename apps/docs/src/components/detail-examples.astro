@@ -1,6 +1,7 @@
 ---
 import { ChevronRight } from "@lucide/astro";
 import { detailExampleGroups } from "../lib/detail-examples";
+import RealWorldUiExampleGrid from "./real-world-ui-example-grid.astro";
 
 interface Props {
   class?: string;
@@ -30,7 +31,7 @@ const { class: className } = Astro.props;
             <h3 class="docs-heading">{group.title}</h3>
           </summary>
 
-          <div class="grid grid-cols-2 gap-3 px-4 pt-4 pb-4">
+          <div class="grid grid-cols-1 gap-3 px-4 pt-4 pb-4 min-[576px]:grid-cols-2">
             {group.examples.map((example) => (
               <figure
                 class:list={["m-0 flex flex-col gap-2", example.figureClass]}
@@ -54,6 +55,20 @@ const { class: className } = Astro.props;
           </div>
         </details>
       ))}
+
+    <details class="group/details border-foreground/8 border-t">
+      <summary
+        class="detail-example-summary flex cursor-pointer list-none items-center gap-1.5 px-4 py-3 transition-colors hover:bg-foreground/3"
+      >
+        <ChevronRight
+          aria-hidden="true"
+          class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/details:rotate-90"
+        />
+        <h3 class="docs-heading">Real-world UI</h3>
+      </summary>
+
+      <RealWorldUiExampleGrid />
+    </details>
   </div>
 </section>
 
@@ -64,10 +79,17 @@ const { class: className } = Astro.props;
     registerHyperellipse().refresh();
   };
 
-  const root = document.querySelector("[data-detail-examples]");
-  if (root) {
+  const initDetailExamples = () => {
+    const root = document.querySelector("[data-detail-examples]");
+    if (!root) {
+      return;
+    }
+
     for (const details of root.querySelectorAll("details")) {
       details.addEventListener("toggle", refreshExamples);
     }
-  }
+  };
+
+  initDetailExamples();
+  document.addEventListener("astro:page-load", initDetailExamples);
 </script>

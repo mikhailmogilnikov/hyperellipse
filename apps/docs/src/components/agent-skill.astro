@@ -1,0 +1,65 @@
+---
+import { Check, Copy } from "@lucide/astro";
+import { agentSkillCommand } from "../lib/agent-skill-command";
+import { highlightCode } from "../lib/highlight";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const skillCommand = agentSkillCommand;
+const highlighted = await highlightCode(skillCommand, "shell");
+---
+
+<section
+  class:list={["flex w-full flex-col gap-3", className]}
+  id="agent-skill"
+>
+  <div class="flex flex-col gap-1">
+    <h2 class="docs-section-label">Agent skill</h2>
+    <p class="docs-text m-0">
+      Install the
+      <a
+        class="text-foreground/70 transition-colors hover:text-foreground"
+        href="https://www.skills.sh/docs"
+        rel="noopener noreferrer"
+        target="_blank"
+        >Agent Skill</a
+      >
+      so coding agents on
+      <a
+        class="text-foreground/70 transition-colors hover:text-foreground"
+        href="https://skills.sh/"
+        rel="noopener noreferrer"
+        target="_blank"
+        >skills.sh</a
+      >
+      integrate hyperellipse correctly — SSR snippet, API, and limitations.
+    </p>
+  </div>
+
+  <div
+    class="code-block-panel install-command-panel squircle"
+    data-code-block
+    data-code-source={skillCommand}
+  >
+    <div class="install-command-scroll">
+      <div class="code-block m-0 min-w-0" set:html={highlighted} />
+    </div>
+    <button
+      aria-label="Copy agent skill install command"
+      class="install-command-copy"
+      data-code-copy
+      type="button"
+    >
+      <Copy aria-hidden="true" class="size-3.5" data-code-copy-icon />
+      <Check
+        aria-hidden="true"
+        class="hidden size-3.5 text-[#34c759]"
+        data-code-check-icon
+      />
+    </button>
+  </div>
+</section>

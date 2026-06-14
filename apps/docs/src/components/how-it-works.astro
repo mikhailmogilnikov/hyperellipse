@@ -1,0 +1,102 @@
+---
+import { ChevronRight } from "@lucide/astro";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const chromiumSteps = [
+  {
+    description:
+      "CSS.supports('corner-shape') passes. No fallback engine, no observers.",
+    title: "Feature detect",
+  },
+  {
+    description:
+      "Injects @property --corner-shape and corner-shape: var(--corner-shape) at zero specificity. Your CSS drives native rendering.",
+    title: "CSS bridge",
+  },
+] as const;
+
+const fallbackSteps = [
+  {
+    description:
+      "Walks stylesheets for selectors declaring --corner-shape. Also matches [data-corner-shape], inline styles, and any extra selector you pass in.",
+    title: "1. Scan",
+  },
+  {
+    description:
+      "Queries the DOM for matched elements and attaches a shared ResizeObserver to each.",
+    title: "2. Match",
+  },
+  {
+    description:
+      "Batch-reads computed styles once per animation frame. Temporarily forces --corner-scale: 1 so geometry uses the full radius, not the SSR reduction.",
+    title: "3. Read",
+  },
+  {
+    description:
+      "Builds superellipse corner paths from element size, border-radius, and the --corner-shape value.",
+    title: "4. Compute",
+  },
+  {
+    description:
+      "Solid fills get clip-path: path(...). Borders, shadows, or outlines switch to layer mode — SVG rings and blurred shapes on ::before / ::after.",
+    title: "5. Apply",
+  },
+  {
+    description:
+      "MutationObserver rescans when stylesheets or attributes change. Size-only resizes reuse cached geometry without re-reading computed styles.",
+    title: "6. Watch",
+  },
+] as const;
+---
+
+<details class:list={["group/how border-foreground/8 border-t", className]}>
+  <summary
+    class="detail-example-summary flex cursor-pointer list-none items-center gap-1.5 px-4 py-3 transition-colors hover:bg-foreground/3"
+  >
+    <ChevronRight
+      aria-hidden="true"
+      class="size-3.5 shrink-0 text-foreground/40 transition-transform duration-150 group-open/how:rotate-90"
+    />
+    <h3 class="docs-heading">How it works</h3>
+  </summary>
+
+  <div class="border-foreground/8 border-t px-4 py-3">
+    <p class="docs-text m-0">
+      registerHyperellipse() checks for native
+      <code class="font-mono text-foreground/70">corner-shape</code>
+      . Chromium gets a CSS-only path; Safari and Firefox run the fallback
+      pipeline below.
+    </p>
+  </div>
+
+  <div class="border-foreground/8 border-t px-4 py-3">
+    <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
+      >Chromium</span
+    >
+  </div>
+
+  {chromiumSteps.map((row) => (
+    <div class="flex flex-col gap-1 border-foreground/8 border-t px-4 py-3">
+      <h4 class="docs-heading">{row.title}</h4>
+      <p class="docs-text m-0">{row.description}</p>
+    </div>
+  ))}
+
+  <div class="border-foreground/8 border-t px-4 py-3">
+    <span class="text-xs font-semibold tracking-wide text-foreground uppercase"
+      >Fallback</span
+    >
+  </div>
+
+  {fallbackSteps.map((row) => (
+    <div class="flex flex-col gap-1 border-foreground/8 border-t px-4 py-3">
+      <h4 class="docs-heading">{row.title}</h4>
+      <p class="docs-text m-0">{row.description}</p>
+    </div>
+  ))}
+</details>
