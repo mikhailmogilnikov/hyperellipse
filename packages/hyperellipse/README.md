@@ -134,8 +134,9 @@ When `box-shadow` or `outline` are present the element switches to "layer mode" 
 - **`box-shadow`/`outline` + background images/gradients**: in layer mode the background image is not shaped (corners stick out). Solid colors are fully supported.
 - Layer mode sets `isolation: isolate` (a stacking context) to contain the `z-index: -1` pseudo-layer, and uses the element's `::before`/`::after` — they must be free.
 - In layer mode child content is not clipped to the shape (`overflow: hidden` clips to the rect).
-- `:hover`-only style changes without transitions aren't observed (transitions, focus, class/attribute changes, resizes and theme switches are). Call `refresh()` for anything else.
+- **`:hover` and `:focus`** work in the fallback. The engine re-reads computed styles on pointer enter/leave and focus events on the element and its ancestors — parent `:hover` rules (e.g. `.wrap:hover .block`) are covered too. Call `refresh()` for imperative updates outside CSS.
 - `--corner-shape` is registered with `inherits: false` (matching the native property) — set it on the element itself, not an ancestor.
+- **`border-radius`, `box-shadow`, and `outline` transitions** are not interpolated frame-by-frame — the shape updates on state change and at `transitionend`. `opacity` and `transform` always transition natively. `background-color` transitions smoothly on solid fills only (no shadow or outline); in layer mode the fill is baked into SVG and jumps. Size (`width` / `height`) transitions animate smoothly via `ResizeObserver`.
 - Animating `corner-shape`, `border-radius`, `box-shadow`, or `outline` in keyframes is not tracked frame-by-frame in the fallback — only size (`width` / `height`) animates smoothly.
 
 ## Performance

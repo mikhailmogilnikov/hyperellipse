@@ -118,7 +118,7 @@ controller.destroy(); // tear down
 
 - Set `--corner-shape` on the element itself, not an ancestor (`inherits: false`)
 - Write `border-radius` through `calc(Npx * var(--corner-scale, 1))` for SSR apps
-- Call `controller.refresh()` after dynamic style changes not covered by transitions (e.g. `:hover`-only rules)
+- `:hover` and `:focus` work in the fallback; parent `:hover` selectors are covered via listeners on ancestors; call `controller.refresh()` for imperative updates outside CSS
 - In layer mode (shadow/outline present), `::before` and `::after` must be free
 
 ## Framework integration
@@ -133,6 +133,7 @@ controller.destroy(); // tear down
 - Dashed/dotted/per-side borders render as a uniform solid ring
 - Layer mode + background images/gradients: corners may stick out (solid colors OK)
 - Layer mode: children are not clipped to the shape (`overflow: hidden` clips to rect)
+- `border-radius`, `box-shadow`, and `outline` transitions are not interpolated frame-by-frame — shape updates on state change and at `transitionend`. `opacity` and `transform` always transition natively. `background-color` transitions smoothly on solid fills only (no shadow or outline); in layer mode the fill is baked into SVG and jumps. Size (`width` / `height`) transitions animate smoothly
 - Animating `corner-shape`, `border-radius`, `box-shadow`, or `outline` in keyframes is not tracked frame-by-frame in the fallback — only size (`width` / `height`) animates smoothly
 
 For rendering strategy details and performance notes, see [limitations.md](limitations.md).

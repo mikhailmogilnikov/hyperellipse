@@ -59,6 +59,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
+    "happy-dom": "^20.10.3",
     "tsup": "^8",
     "typescript": "^6",
     "vitest": "^4.1.8"

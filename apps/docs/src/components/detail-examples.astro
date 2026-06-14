@@ -1,6 +1,7 @@
 ---
 import { ChevronRight } from "@lucide/astro";
 import { detailExampleGroups } from "../lib/detail-examples";
+import DetailExampleCard from "./detail-example-card.astro";
 import RealWorldUiExampleGrid from "./real-world-ui-example-grid.astro";
 
 interface Props {
@@ -31,35 +32,53 @@ const { class: className } = Astro.props;
             <h3 class="docs-heading">{group.title}</h3>
           </summary>
 
-          <div class="grid grid-cols-1 gap-3 px-4 pt-4 pb-4 min-[576px]:grid-cols-2">
+          <div
+            class:list={[
+              "px-4 pt-4 pb-4",
+              group.subgroups ? "flex flex-col gap-5" : null,
+            ]}
+          >
             {group.note ? (
-              <p class="docs-text col-span-full m-0">{group.note}</p>
+              <p class="m-0 text-foreground/50 text-sm leading-relaxed">
+                {group.note}
+              </p>
             ) : null}
-            {group.examples.map((example) => (
-              <figure
-                class:list={["m-0 flex flex-col gap-2", example.figureClass]}
-              >
-                {
-                  example.previewWrapper === "stage" ? (
-                    <div aria-hidden="true" class="detail-example-stage">
-                      <div class={example.previewClass} />
-                    </div>
-                  ) : (
-                    <div aria-hidden="true" class={example.previewClass} />
-                  )
-                }
-                <figcaption class="flex flex-col gap-0.5">
-                  <h4 class="docs-heading text-sm">
-                    {example.caption}
-                  </h4>
-                  <code
-                    class="font-mono text-foreground/45 text-sm leading-snug"
-                  >
-                    {example.label}
-                  </code>
-                </figcaption>
-              </figure>
+
+            {group.subgroups?.map((subgroup) => (
+              <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-1.5">
+                  <h4 class="docs-heading">{subgroup.title}</h4>
+                  {subgroup.note ? (
+                    <p class="m-0 text-foreground/50 text-sm leading-relaxed">
+                      {subgroup.note}
+                    </p>
+                  ) : null}
+                </div>
+                <div class="grid grid-cols-1 gap-3 min-[576px]:grid-cols-2">
+                  {subgroup.examples.map((example) => (
+                    <DetailExampleCard
+                      caption={example.caption}
+                      css={example.css}
+                      figureClass={example.figureClass}
+                      previewClass={example.previewClass}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
+
+            {group.examples ? (
+              <div class="grid grid-cols-1 gap-3 min-[576px]:grid-cols-2">
+                {group.examples.map((example) => (
+                  <DetailExampleCard
+                    caption={example.caption}
+                    css={example.css}
+                    figureClass={example.figureClass}
+                    previewClass={example.previewClass}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
         </details>
       ))}

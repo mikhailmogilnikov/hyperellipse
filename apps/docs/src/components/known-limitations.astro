@@ -30,8 +30,13 @@ const rows = [
   },
   {
     description:
-      ":hover-only style changes without transitions are not observed. Call refresh() for other imperative updates.",
+      ":hover and :focus work in the fallback. The engine re-reads computed styles on pointer enter/leave and focus events on the element and its ancestors — so parent :hover rules (e.g. .wrap:hover .block) are covered too. Call refresh() for imperative updates outside CSS.",
     title: "Dynamic styles",
+  },
+  {
+    description:
+      "border-radius, box-shadow, and outline transitions are not interpolated frame-by-frame — the shape updates on state change and at transitionend. opacity and transform always transition natively. background-color transitions smoothly on solid fills only (no shadow or outline); in layer mode the fill is baked into SVG and jumps. Size (width / height) transitions animate smoothly via ResizeObserver.",
+    title: "CSS transitions",
   },
   {
     description:

@@ -1,0 +1,26 @@
+---
+import { highlightCode } from "../lib/highlight";
+
+interface Props {
+  caption: string;
+  css: string;
+  figureClass?: string;
+  previewClass: string;
+}
+
+const { caption, css, figureClass, previewClass } = Astro.props;
+
+const highlighted = await highlightCode(css, "css");
+---
+
+<figure class:list={["detail-example-card m-0", figureClass]}>
+  <div class="detail-example-card-header">
+    <h4 class="detail-example-card-title">{caption}</h4>
+  </div>
+
+  <div aria-hidden="true" class="detail-example-card-preview">
+    <div class={previewClass} />
+  </div>
+
+  <div class="detail-example-card-code code-block" set:html={highlighted} />
+</figure>

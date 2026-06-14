@@ -1,5 +1,11 @@
 # hyperellipse
 
+## 1.0.4
+
+### Patch Changes
+
+- Observe `:hover` in the Safari / Firefox fallback via `mouseenter` / `mouseleave` on tracked elements and their ancestors.
+
 ## 1.0.3
 
 ### Patch Changes

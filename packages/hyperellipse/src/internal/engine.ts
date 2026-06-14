@@ -27,6 +27,8 @@ interface Entry {
   /** Last applied inline styles — needed to restore paint while a new SVG decodes. */
   applied: Record<string, string>;
   hostAttr: string;
+  /** Removes `mouseenter` / `mouseleave` listeners on the element and ancestors. */
+  hoverCleanup?: () => void;
   key: string;
   /** Monotonic token: invalidates pending async (decode) applies superseded by newer state. */
   seq: number;
@@ -130,19 +132,53 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     scheduleFlush();
   };
 
+  const detachHoverListeners = (entry: Entry): void => {
+    entry.hoverCleanup?.();
+  };
+
+  /** Re-read when the element or an ancestor enters/leaves hover. */
+  const attachHoverListeners = (element: HTMLElement, entry: Entry): void => {
+    const handler = (): void => {
+      markDirty(element);
+    };
+    const nodes: HTMLElement[] = [];
+    for (
+      let node: HTMLElement | null = element;
+      node;
+      node = node.parentElement
+    ) {
+      node.addEventListener("mouseenter", handler);
+      node.addEventListener("mouseleave", handler);
+      nodes.push(node);
+    }
+    entry.hoverCleanup = () => {
+      for (const node of nodes) {
+        node.removeEventListener("mouseenter", handler);
+        node.removeEventListener("mouseleave", handler);
+      }
+      entry.hoverCleanup = undefined;
+    };
+  };
+
   const track = (element: Element): void => {
     if (!(element instanceof HTMLElement)) {
       return;
     }
     if (!tracked.has(element)) {
       tracked.add(element);
-      entries.set(element, entries.get(element) ?? createEntry());
+      const entry = entries.get(element) ?? createEntry();
+      entries.set(element, entry);
       resizeObserver.observe(element);
+      attachHoverListeners(element, entry);
     }
     markDirty(element);
   };
 
   const untrack = (element: HTMLElement): void => {
+    const entry = entries.get(element);
+    if (entry) {
+      detachHoverListeners(entry);
+    }
     tracked.delete(element);
     dirty.delete(element);
     resizeObserver.unobserve(element);
@@ -568,6 +604,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       for (const element of tracked) {
         const entry = entries.get(element);
         if (entry) {
+          detachHoverListeners(entry);
           clearOwned(element, entry);
         }
       }
