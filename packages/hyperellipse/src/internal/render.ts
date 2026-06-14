@@ -1,8 +1,8 @@
 import {
   buildShapePath,
   type CornerShapeList,
+  contourPath,
   offsetCorners,
-  offsetCornersAligned,
   type ResolvedCorners,
 } from "./geometry";
 import {
@@ -20,7 +20,6 @@ import { CORNER_SHAPE_VAR } from "./scan";
 
 /** Native `round` — no fallback needed when all corners use this shape. */
 const ROUND_SHAPE = 1;
-const HALF = 0.5;
 /** CSS box-shadow blur radius = 2 × Gaussian `stdDeviation` (per spec). */
 const BLUR_STD_DEV_RATIO = 0.5;
 
@@ -169,7 +168,12 @@ const svgDataUri = (width: number, height: number, body: string): string => {
 
 const cssUrl = (uri: string): string => `url("${uri}")`;
 
-/** Border ring: stroke centered on the path, inside a `width×height` box. */
+/**
+ * Border ring: filled band between the outer (border-edge) contour and the inner
+ * (padding-edge) contour, the latter computed via the curve-aligned offset so it
+ * grows strictly inward — matching native `border` on concave corners (scoop,
+ * notch), where a centered stroke would bleed outward.
+ */
 const ringPathMarkup = (
   x: number,
   y: number,
@@ -178,17 +182,24 @@ const ringPathMarkup = (
   corners: ResolvedCorners,
   border: SourceBorder
 ): string => {
-  const inset = border.width * HALF;
-  const path = buildShapePath(
-    {
-      x: x + inset,
-      y: y + inset,
-      width: width - border.width,
-      height: height - border.width,
-    },
-    offsetCornersAligned(corners, -inset)
-  );
-  return `<path d="${path}" fill="none" stroke="${border.color}" stroke-width="${border.width}"/>`;
+  const bw = border.width;
+  const box = { x, y, width, height };
+  // The outer edge must use the exact same path as the fill / clip-path so the
+  // two anti-aliased contours coincide — otherwise a subpixel mismatch leaves a
+  // hairline seam along the border's outer edge.
+  const outer = buildShapePath(box, corners);
+  const innerWidth = width - bw * 2;
+  const innerHeight = height - bw * 2;
+  if (innerWidth <= 0 || innerHeight <= 0) {
+    return `<path d="${outer}" fill="${border.color}"/>`;
+  }
+  const inner = contourPath(box, corners, {
+    x: x + bw,
+    y: y + bw,
+    width: innerWidth,
+    height: innerHeight,
+  });
+  return `<path d="${outer} ${inner}" fill="${border.color}" fill-rule="evenodd"/>`;
 };
 
 const buildRingSvg = (
@@ -204,14 +215,28 @@ const buildRingSvg = (
   );
 
 /**
- * Inward overlap when the outline touches the border (`outline-offset <= 0`).
- * The outline and the border live in separate SVG layers, and two adjacent
- * anti-aliased edges never composite to full opacity — a hairline seam shows
- * through. Extending the stroke under the border hides it; the outer edge
- * stays in place.
+ * Miter limit for outline joins. Native outlines extend concave-corner joins as
+ * sharp miters; a generous limit keeps them sharp without degenerating to a
+ * bevel for the angles produced by `scoop`/`notch`.
+ */
+const OUTLINE_MITER_LIMIT = 12;
+
+/**
+ * When the outline touches the border (`outline-offset <= 0`) it lives on a
+ * separate pseudo-layer from the border; two adjacent anti-aliased edges never
+ * composite to full opacity, so a hairline seam shows through. Eroding the
+ * inner hole by a pixel makes the outline overlap the border and hides it.
  */
 const OUTLINE_SEAM_BLEED = 1;
 
+/**
+ * Outline as the difference of two outward dilations of the shape: dilating by
+ * `offset + width` minus dilating by `offset`. A dilation is the shape filled
+ * and stroked by `2 × distance` with miter joins, which is exactly the native
+ * outward offset — straight edges move out, concave corners shrink their radius
+ * and meet in sharp convex miters (not a grown, rounded curve). The two
+ * dilations are composited through a mask so the band grows strictly outward.
+ */
 const buildOutlineSvg = (
   width: number,
   height: number,
@@ -219,21 +244,35 @@ const buildOutlineSvg = (
   outline: SourceOutline
 ): { uri: string; extent: number } => {
   const bleed = outline.offset <= 0 ? OUTLINE_SEAM_BLEED : 0;
-  const extent = outline.offset + outline.width;
-  const canvasWidth = width + extent * 2;
-  const canvasHeight = height + extent * 2;
-  const strokeWidth = outline.width + bleed;
-  const inset = strokeWidth * HALF;
-  const path = buildShapePath(
-    {
-      x: inset,
-      y: inset,
-      width: canvasWidth - strokeWidth,
-      height: canvasHeight - strokeWidth,
-    },
-    offsetCornersAligned(corners, outline.offset - bleed + inset)
-  );
-  const body = `<path d="${path}" fill="none" stroke="${outline.color}" stroke-width="${strokeWidth}"/>`;
+  const offset = Math.max(outline.offset, 0);
+  const spread = offset + outline.width;
+  const extent = spread;
+  const canvasWidth = width + spread * 2;
+  const canvasHeight = height + spread * 2;
+  const shapeBox = { x: spread, y: spread, width, height };
+  const shape = buildShapePath(shapeBox, corners);
+  const join = `stroke-linejoin="miter" stroke-miterlimit="${OUTLINE_MITER_LIMIT}"`;
+  const outerDilation = `<path d="${shape}" fill="#fff" stroke="#fff" stroke-width="${spread * 2}" ${join}/>`;
+  // Inner hole = shape dilated outward by `offset` (the gap below the outline),
+  // pulled inward by `bleed` so the band overlaps the border when they touch.
+  const innerDistance = offset - bleed;
+  let innerHole: string;
+  if (innerDistance > 0) {
+    innerHole = `<path d="${shape}" fill="#000" stroke="#000" stroke-width="${innerDistance * 2}" ${join}/>`;
+  } else if (innerDistance === 0) {
+    innerHole = `<path d="${shape}" fill="#000"/>`;
+  } else {
+    const erosion = -innerDistance;
+    const eroded = contourPath(shapeBox, corners, {
+      x: shapeBox.x + erosion,
+      y: shapeBox.y + erosion,
+      width: width - erosion * 2,
+      height: height - erosion * 2,
+    });
+    innerHole = `<path d="${eroded}" fill="#000"/>`;
+  }
+  const mask = `<mask id="ho" maskUnits="userSpaceOnUse" x="0" y="0" width="${canvasWidth}" height="${canvasHeight}">${outerDilation}${innerHole}</mask>`;
+  const body = `<defs>${mask}</defs><rect x="0" y="0" width="${canvasWidth}" height="${canvasHeight}" fill="${outline.color}" mask="url(#ho)"/>`;
   return { uri: svgDataUri(canvasWidth, canvasHeight, body), extent };
 };
 

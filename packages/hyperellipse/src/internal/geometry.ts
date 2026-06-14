@@ -232,3 +232,274 @@ export const offsetCornersAligned = (
     rx: corner.rx > 0 ? Math.max(corner.rx + delta, 0) : 0,
     ry: corner.ry > 0 ? Math.max(corner.ry + delta, 0) : 0,
   })) as ResolvedCorners;
+
+const clampUnit = (value: number): number => Math.min(Math.max(value, -1), 1);
+
+/**
+ * css-borders-4 §3.9.6: maps a superellipse parameter to its normalized half
+ * corner in [0, 1]. Drives the quadratic control point used to align an offset
+ * contour's endpoints to the source curve.
+ */
+const normalizedHalfCorner = (shape: CornerShapeParam): number => {
+  if (shape === Number.NEGATIVE_INFINITY) {
+    return 0;
+  }
+  if (shape === Number.POSITIVE_INFINITY) {
+    return 1;
+  }
+  const k = HALF ** Math.abs(shape);
+  const convex = HALF ** k;
+  return shape < 0 ? 1 - convex : convex;
+};
+
+/** Rotates a point clockwise by `90° × steps` (screen coordinates, y-down). */
+const rotate90 = (point: Point, steps: number): Point => {
+  let { x, y } = point;
+  const turns = ((steps % 4) + 4) % 4;
+  for (let i = 0; i < turns; i += 1) {
+    const nextX = -y;
+    y = x;
+    x = nextX;
+  }
+  return { x, y };
+};
+
+/**
+ * css-borders-4 §3.9.4 "aligned corner point": shifts a corner-rect vertex by
+ * `thickness` along the offset's normal, keeping the contour at a constant
+ * distance from the source curve as the target edge moves inward.
+ */
+const alignedCornerPoint = (
+  origin: Point,
+  offset: Point,
+  thickness: number,
+  orientation: number
+): Point => {
+  const length = Math.hypot(offset.x, offset.y) || 1;
+  const rotated = rotate90(offset, orientation);
+  return {
+    x: origin.x + (rotated.x / length) * thickness,
+    y: origin.y + (rotated.y / length) * thickness,
+  };
+};
+
+const clockwiseQuad = (box: ShapeBox): [Point, Point, Point, Point] => [
+  { x: box.x, y: box.y },
+  { x: box.x + box.width, y: box.y },
+  { x: box.x + box.width, y: box.y + box.height },
+  { x: box.x, y: box.y + box.height },
+];
+
+/** Projects a normalized superellipse point into a corner rect, rotated per corner. */
+const projectCornerPoint = (
+  normalized: Point,
+  rect: ShapeBox,
+  orientation: number
+): Point => {
+  const centered = rotate90(
+    { x: normalized.x - HALF, y: normalized.y - HALF },
+    orientation
+  );
+  return {
+    x: rect.x + (centered.x + HALF) * rect.width,
+    y: rect.y + (centered.y + HALF) * rect.height,
+  };
+};
+
+/** One corner's untrimmed contour points, from incoming edge to outgoing edge. */
+const contourCornerPoints = (
+  cornerRect: ShapeBox,
+  orientation: number,
+  startThickness: number,
+  endThickness: number,
+  shape: CornerShapeParam
+): Point[] => {
+  const quad = clockwiseQuad(cornerRect);
+  const vertex = quad[(orientation + 1) % 4] as Point;
+  if (
+    cornerRect.width <= 0 ||
+    cornerRect.height <= 0 ||
+    shape === Number.POSITIVE_INFINITY
+  ) {
+    return [vertex];
+  }
+
+  const half = normalizedHalfCorner(clampUnit(shape));
+  const control = half * 2 - HALF;
+  const start = alignedCornerPoint(
+    quad[orientation] as Point,
+    { x: control, y: 1 - control },
+    startThickness,
+    orientation + 1
+  );
+  const end = alignedCornerPoint(
+    quad[(orientation + 2) % 4] as Point,
+    { x: control - 1, y: -control },
+    endThickness,
+    orientation + 3
+  );
+
+  if (shape === Number.NEGATIVE_INFINITY) {
+    return [
+      start,
+      { x: start.x + end.x - vertex.x, y: start.y + end.y - vertex.y },
+      end,
+    ];
+  }
+
+  const rect: ShapeBox = {
+    x: Math.min(start.x, end.x),
+    y: Math.min(start.y, end.y),
+    width: Math.abs(end.x - start.x),
+    height: Math.abs(end.y - start.y),
+  };
+  const exponent = HALF ** Math.abs(shape);
+  const segments = segmentCount({
+    rx: rect.width,
+    ry: rect.height,
+    shape,
+  });
+  const points: Point[] = [];
+  for (let i = 0; i <= segments; i += 1) {
+    const t = cosineSpaced(i / segments);
+    const a = t ** exponent;
+    const b = 1 - (1 - t) ** exponent;
+    const normalized = shape > 0 ? { x: a, y: b } : { x: b, y: a };
+    points.push(projectCornerPoint(normalized, rect, orientation));
+  }
+  return points;
+};
+
+const CLIP_EPSILON = 1e-4;
+
+const interpolate = (a: Point, b: Point, t: number): Point => ({
+  x: a.x + (b.x - a.x) * t,
+  y: a.y + (b.y - a.y) * t,
+});
+
+/** Sutherland–Hodgman clip of a closed polygon against an axis-aligned rect. */
+const clipPolygonToRect = (polygon: Point[], rect: ShapeBox): Point[] => {
+  const left = rect.x;
+  const right = rect.x + rect.width;
+  const top = rect.y;
+  const bottom = rect.y + rect.height;
+  const edges: {
+    inside: (point: Point) => boolean;
+    intersect: (a: Point, b: Point) => Point;
+  }[] = [
+    {
+      inside: (p) => p.x >= left - CLIP_EPSILON,
+      intersect: (a, b) => interpolate(a, b, (left - a.x) / (b.x - a.x)),
+    },
+    {
+      inside: (p) => p.x <= right + CLIP_EPSILON,
+      intersect: (a, b) => interpolate(a, b, (right - a.x) / (b.x - a.x)),
+    },
+    {
+      inside: (p) => p.y >= top - CLIP_EPSILON,
+      intersect: (a, b) => interpolate(a, b, (top - a.y) / (b.y - a.y)),
+    },
+    {
+      inside: (p) => p.y <= bottom + CLIP_EPSILON,
+      intersect: (a, b) => interpolate(a, b, (bottom - a.y) / (b.y - a.y)),
+    },
+  ];
+
+  let output = polygon;
+  for (const edge of edges) {
+    if (output.length === 0) {
+      break;
+    }
+    const input = output;
+    output = [];
+    for (let i = 0; i < input.length; i += 1) {
+      const current = input[i] as Point;
+      const previous = input[(i + input.length - 1) % input.length] as Point;
+      const currentInside = edge.inside(current);
+      const previousInside = edge.inside(previous);
+      if (currentInside) {
+        if (!previousInside) {
+          output.push(edge.intersect(previous, current));
+        }
+        output.push(current);
+      } else if (previousInside) {
+        output.push(edge.intersect(previous, current));
+      }
+    }
+  }
+  return output;
+};
+
+const polygonToPath = (points: Point[]): string => {
+  if (points.length === 0) {
+    return "";
+  }
+  const first = points[0] as Point;
+  const segments = [`M ${fmt(first.x)} ${fmt(first.y)}`];
+  for (let i = 1; i < points.length; i += 1) {
+    const point = points[i] as Point;
+    segments.push(`L ${fmt(point.x)} ${fmt(point.y)}`);
+  }
+  segments.push("Z");
+  return segments.join(" ");
+};
+
+/**
+ * Curve-aligned offset contour per css-borders-4 §3.9.4. The corner curves are
+ * anchored to `outerBox` (with the border-edge radii) and their endpoints are
+ * shifted toward `target` by the per-side thickness, then the whole contour is
+ * trimmed to `target`. For concave corners (scoop, notch) the trim produces the
+ * sharp inner joins that a uniform stroke cannot, matching native rendering.
+ *
+ * `target === outerBox` yields the plain shape. An inset target draws the inner
+ * (padding-edge) contour of a border; an outset `outerBox` with an inset target
+ * draws an outline contour.
+ */
+export const contourPath = (
+  outerBox: ShapeBox,
+  corners: ResolvedCorners,
+  target: ShapeBox
+): string => {
+  const left = outerBox.x;
+  const top = outerBox.y;
+  const right = outerBox.x + outerBox.width;
+  const bottom = outerBox.y + outerBox.height;
+  const targetLeft = target.x;
+  const targetTop = target.y;
+  const targetRight = target.x + target.width;
+  const targetBottom = target.y + target.height;
+  const [tl, tr, br, bl] = corners;
+
+  const points: Point[] = [
+    ...contourCornerPoints(
+      { x: right - tr.rx, y: top, width: tr.rx, height: tr.ry },
+      0,
+      targetTop - top,
+      right - targetRight,
+      tr.shape
+    ),
+    ...contourCornerPoints(
+      { x: right - br.rx, y: bottom - br.ry, width: br.rx, height: br.ry },
+      1,
+      right - targetRight,
+      bottom - targetBottom,
+      br.shape
+    ),
+    ...contourCornerPoints(
+      { x: left, y: bottom - bl.ry, width: bl.rx, height: bl.ry },
+      2,
+      bottom - targetBottom,
+      targetLeft - left,
+      bl.shape
+    ),
+    ...contourCornerPoints(
+      { x: left, y: top, width: tl.rx, height: tl.ry },
+      3,
+      targetLeft - left,
+      targetTop - top,
+      tl.shape
+    ),
+  ];
+
+  return polygonToPath(clipPolygonToRect(points, target));
+};
