@@ -29,7 +29,11 @@ interface Entry {
   hostAttr: string;
   /** Removes `mouseenter` / `mouseleave` listeners on the element and ancestors. */
   hoverCleanup?: () => void;
+  /** Whether the element intersects the viewport (IntersectionObserver). */
+  inView: boolean;
   key: string;
+  /** Recompute once the element re-enters the viewport. */
+  pendingDirty: boolean;
   /** Monotonic token: invalidates pending async (decode) applies superseded by newer state. */
   seq: number;
   /** Snapshot of the `style` attribute after our write — distinguishes our mutations from author/React updates. */
@@ -44,6 +48,8 @@ const createEntry = (): Entry => ({
   seq: 0,
   snapshot: "",
   hostAttr: "",
+  inView: true,
+  pendingDirty: false,
 });
 
 /** Upper bound for the decoded-URI memo before it resets. */
@@ -107,6 +113,10 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
         continue;
       }
       const entry = entries.get(element);
+      if (entry && intersectionObserver && !entry.inView) {
+        entry.pendingDirty = true;
+        continue;
+      }
       if (entry?.source) {
         // Size-only change — reuse cached source and apply right away:
         // ResizeObserver fires after layout but before paint, so synchronous
@@ -119,6 +129,29 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     }
   });
 
+  const intersectionObserver =
+    typeof IntersectionObserver === "undefined"
+      ? null
+      : new IntersectionObserver((ioEntries) => {
+          for (const ioEntry of ioEntries) {
+            const element = ioEntry.target;
+            if (!(element instanceof HTMLElement && tracked.has(element))) {
+              continue;
+            }
+            const entry = entries.get(element);
+            if (!entry) {
+              continue;
+            }
+            const wasInView = entry.inView;
+            entry.inView = ioEntry.isIntersecting;
+            if (entry.inView && (!wasInView || entry.pendingDirty)) {
+              entry.pendingDirty = false;
+              dirty.add(element);
+              scheduleFlush();
+            }
+          }
+        });
+
   const scheduleFlush = (): void => {
     if (flushScheduled || destroyed) {
       return;
@@ -128,6 +161,11 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
   };
 
   const markDirty = (element: HTMLElement): void => {
+    const entry = entries.get(element);
+    if (entry && intersectionObserver && !entry.inView) {
+      entry.pendingDirty = true;
+      return;
+    }
     dirty.add(element);
     scheduleFlush();
   };
@@ -169,6 +207,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       const entry = entries.get(element) ?? createEntry();
       entries.set(element, entry);
       resizeObserver.observe(element);
+      intersectionObserver?.observe(element);
       attachHoverListeners(element, entry);
     }
     markDirty(element);
@@ -182,6 +221,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     tracked.delete(element);
     dirty.delete(element);
     resizeObserver.unobserve(element);
+    intersectionObserver?.unobserve(element);
   };
 
   const trackQueryResults = (root: ParentNode): void => {
@@ -192,7 +232,12 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
 
   const refreshAll = (): void => {
     for (const element of tracked) {
-      dirty.add(element);
+      const entry = entries.get(element);
+      if (entry && intersectionObserver && !entry.inView) {
+        entry.pendingDirty = true;
+      } else {
+        dirty.add(element);
+      }
     }
     scheduleFlush();
   };
@@ -403,6 +448,19 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     pendingSheet.setDisabled(false);
   };
 
+  const collectFlushList = (dirtyList: HTMLElement[]): HTMLElement[] => {
+    const flushList: HTMLElement[] = [];
+    for (const element of dirtyList) {
+      const entry = entries.get(element);
+      if (entry && intersectionObserver && !entry.inView) {
+        entry.pendingDirty = true;
+        continue;
+      }
+      flushList.push(element);
+    }
+    return flushList;
+  };
+
   /**
    * Flush phases: remove overrides + disable pending sheet → all reads →
    * restore + re-enable sheets → all writes. Layout is touched at most twice
@@ -418,13 +476,13 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       rescan();
     }
 
-    const dirtyList = collectDirty();
-    if (dirtyList.length === 0) {
+    const flushList = collectFlushList(collectDirty());
+    if (flushList.length === 0) {
       return;
     }
 
-    readDirtySources(dirtyList);
-    for (const element of dirtyList) {
+    readDirtySources(flushList);
+    for (const element of flushList) {
       const entry = entries.get(element);
       if (!entry) {
         continue;
@@ -595,6 +653,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       cancelAnimationFrame(rafId);
       mutationObserver.disconnect();
       resizeObserver.disconnect();
+      intersectionObserver?.disconnect();
       doc.removeEventListener("transitionrun", handleTransitionLifecycle, true);
       doc.removeEventListener("transitionend", handleTransitionLifecycle, true);
       doc.removeEventListener("animationend", handleTransitionLifecycle, true);

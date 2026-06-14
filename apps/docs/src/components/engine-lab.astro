@@ -1,0 +1,356 @@
+---
+import ToggleSwitch from "./toggle-switch.astro";
+
+const scrollItems = Array.from({ length: 12 }, (_, index) => index);
+---
+
+<div class="engine-lab" data-engine-lab>
+  <header class="engine-lab-header">
+    <a
+      class="engine-lab-back text-foreground/50 text-sm transition-colors hover:text-foreground"
+      href="/"
+    >
+      ← Home
+    </a>
+    <h1 class="engine-lab-title">Engine lab</h1>
+    <p class="engine-lab-lead">
+      Test fallback behavior in Safari or Firefox, or enable
+      <strong>Force fallback</strong>
+      in Chrome to exercise the JS engine.
+    </p>
+  </header>
+
+  <div class="engine-lab-grid">
+    <aside class="engine-lab-panel squircle">
+      <h2 class="engine-lab-panel-title">Controls</h2>
+
+      <ToggleSwitch checked label="Force fallback" name="lab-force" />
+
+      <div class="engine-lab-actions">
+        <button class="engine-lab-button" data-lab-refresh type="button">
+          Refresh
+        </button>
+        <button
+          class="engine-lab-button engine-lab-button-muted"
+          data-lab-clear-log
+          type="button"
+        >
+          Clear log
+        </button>
+      </div>
+
+      <dl class="engine-lab-status">
+        <div class="engine-lab-status-row">
+          <dt>Native corner-shape</dt>
+          <dd data-lab-status-supported>—</dd>
+        </div>
+        <div class="engine-lab-status-row">
+          <dt>Fallback active</dt>
+          <dd data-lab-status-active>—</dd>
+        </div>
+      </dl>
+
+      <h2 class="engine-lab-panel-title">Event log</h2>
+      <pre
+        aria-live="polite"
+        class="engine-lab-log scrollbar-styled"
+        data-lab-log
+      ></pre>
+    </aside>
+
+    <div class="engine-lab-demos">
+      <section class="engine-lab-section">
+        <h3 class="engine-lab-section-title">Hover</h3>
+        <p class="engine-lab-section-note">
+          Instant update vs <code>transition</code> on border-width (run + end
+          only, not mid-transition).
+        </p>
+        <div class="engine-lab-row">
+          <figure class="engine-lab-figure">
+            <div
+              aria-hidden="true"
+              class="lab-block lab-hover-border"
+              data-lab-target
+            ></div>
+            <figcaption>Instant</figcaption>
+          </figure>
+          <figure class="engine-lab-figure">
+            <div
+              aria-hidden="true"
+              class="lab-block lab-hover-border lab-hover-transition"
+              data-lab-target
+            ></div>
+            <figcaption>Transition</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="engine-lab-section">
+        <h3 class="engine-lab-section-title">Nested scroll</h3>
+        <p class="engine-lab-section-note">
+          IntersectionObserver defers off-screen items inside
+          <code>overflow: auto</code>.
+        </p>
+        <div class="engine-lab-scroll scrollbar-styled" data-lab-scroll>
+          {scrollItems.map((index) => (
+            <figure class="engine-lab-scroll-item">
+              <div
+                aria-hidden="true"
+                class="lab-block lab-scroll-block"
+                data-lab-index={index}
+                data-lab-target
+              >
+              </div>
+              <figcaption>#{index + 1}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      <section class="engine-lab-section">
+        <h3 class="engine-lab-section-title">Size animation</h3>
+        <p class="engine-lab-section-note">
+          Width / height keyframes animate via ResizeObserver.
+        </p>
+        <div class="engine-lab-stage">
+          <div
+            aria-hidden="true"
+            class="lab-block lab-anim-size"
+            data-lab-target
+          ></div>
+        </div>
+      </section>
+
+      <section class="engine-lab-section">
+        <h3 class="engine-lab-section-title">Layer mode</h3>
+        <p class="engine-lab-section-note">
+          Box-shadow and outline use SVG pseudo-layers.
+        </p>
+        <div class="engine-lab-row">
+          <figure class="engine-lab-figure">
+            <div
+              aria-hidden="true"
+              class="lab-block lab-layer-shadow"
+              data-lab-target
+            ></div>
+            <figcaption>Shadow</figcaption>
+          </figure>
+          <figure class="engine-lab-figure">
+            <div
+              aria-hidden="true"
+              class="lab-block lab-layer-outline"
+              data-lab-target
+            ></div>
+            <figcaption>Outline</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="engine-lab-section">
+        <h3 class="engine-lab-section-title">Shapes</h3>
+        <div class="engine-lab-row">
+          <figure class="engine-lab-figure">
+            <div
+              aria-hidden="true"
+              class="lab-block lab-shape-squircle"
+              data-lab-target
+            ></div>
+            <figcaption>Squircle</figcaption>
+          </figure>
+          <figure class="engine-lab-figure">
+            <div
+              aria-hidden="true"
+              class="lab-block lab-shape-scoop"
+              data-lab-target
+            ></div>
+            <figcaption>Scoop</figcaption>
+          </figure>
+          <figure class="engine-lab-figure">
+            <div
+              aria-hidden="true"
+              class="lab-block lab-shape-notch"
+              data-lab-target
+            ></div>
+            <figcaption>Notch</figcaption>
+          </figure>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  import {
+    type HyperellipseController,
+    registerHyperellipse,
+  } from "hyperellipse";
+
+  const LAB_SELECTOR = "[data-lab-target]";
+  const MAX_LOG_LINES = 40;
+
+  let controller: HyperellipseController | null = null;
+  let logObserver: IntersectionObserver | undefined;
+
+  const formatTime = (): string =>
+    new Date().toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+  const appendLog = (message: string): void => {
+    const logElement = document.querySelector("[data-lab-log]");
+    if (!(logElement instanceof HTMLElement)) {
+      return;
+    }
+
+    const line = `[${formatTime()}] ${message}`;
+    const next = logElement.textContent
+      ? `${line}\n${logElement.textContent}`
+      : line;
+    const lines = next.split("\n").slice(0, MAX_LOG_LINES);
+    logElement.textContent = lines.join("\n");
+  };
+
+  const targetLabel = (element: HTMLElement): string => {
+    const index = element.dataset.labIndex;
+    if (index !== undefined) {
+      return `#${Number(index) + 1}`;
+    }
+
+    for (const className of element.classList) {
+      if (className.startsWith("lab-")) {
+        return className.replace("lab-", "");
+      }
+    }
+
+    return "block";
+  };
+
+  const updateStatus = (): void => {
+    const supported = document.querySelector("[data-lab-status-supported]");
+    const active = document.querySelector("[data-lab-status-active]");
+
+    if (supported instanceof HTMLElement) {
+      supported.textContent = controller?.supported ? "yes" : "no";
+    }
+    if (active instanceof HTMLElement) {
+      active.textContent = controller?.active ? "yes" : "no";
+    }
+  };
+
+  const disconnectLogObserver = (): void => {
+    logObserver?.disconnect();
+    logObserver = undefined;
+  };
+
+  const connectLogObserver = (root: HTMLElement): void => {
+    disconnectLogObserver();
+
+    if (typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    logObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!(entry.target instanceof HTMLElement)) {
+          continue;
+        }
+        appendLog(
+          `intersect · ${targetLabel(entry.target)} · ${entry.isIntersecting ? "in" : "out"}`
+        );
+      }
+    });
+
+    for (const element of root.querySelectorAll(LAB_SELECTOR)) {
+      if (element instanceof HTMLElement) {
+        logObserver.observe(element);
+      }
+    }
+  };
+
+  const bootstrap = (force: boolean): void => {
+    controller?.destroy();
+    controller = registerHyperellipse({
+      force,
+      selector: LAB_SELECTOR,
+    });
+    controller.refresh();
+    updateStatus();
+    appendLog(
+      force
+        ? "registerHyperellipse({ force: true })"
+        : "registerHyperellipse() — native path when supported"
+    );
+  };
+
+  const initEngineLab = (): void => {
+    const root = document.querySelector("[data-engine-lab]");
+    if (!(root instanceof HTMLElement)) {
+      return;
+    }
+
+    if (root.dataset.labReady === "true") {
+      return;
+    }
+    root.dataset.labReady = "true";
+
+    const forceInput = root.querySelector("[data-toggle-input]");
+    const force =
+      forceInput instanceof HTMLInputElement ? forceInput.checked : true;
+
+    bootstrap(force);
+    connectLogObserver(root);
+
+    forceInput?.addEventListener("change", () => {
+      if (forceInput instanceof HTMLInputElement) {
+        bootstrap(forceInput.checked);
+      }
+    });
+
+    root.querySelector("[data-lab-refresh]")?.addEventListener("click", () => {
+      controller?.refresh();
+      appendLog("refresh()");
+    });
+
+    root
+      .querySelector("[data-lab-clear-log]")
+      ?.addEventListener("click", () => {
+        const logElement = document.querySelector("[data-lab-log]");
+        if (logElement instanceof HTMLElement) {
+          logElement.textContent = "";
+        }
+      });
+
+    for (const type of [
+      "transitionrun",
+      "transitionend",
+      "animationend",
+    ] as const) {
+      document.addEventListener(
+        type,
+        (event) => {
+          if (!(event.target instanceof HTMLElement)) {
+            return;
+          }
+          if (!event.target.matches(LAB_SELECTOR)) {
+            return;
+          }
+
+          const property =
+            "propertyName" in event && typeof event.propertyName === "string"
+              ? event.propertyName
+              : "";
+
+          appendLog(
+            `${type} · ${targetLabel(event.target)}${property ? ` · ${property}` : ""}`
+          );
+        },
+        true
+      );
+    }
+  };
+
+  initEngineLab();
+  document.addEventListener("astro:page-load", initEngineLab);
+</script>

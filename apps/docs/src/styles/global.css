@@ -433,6 +433,288 @@
     outline-offset: 6px;
   }
 
+  .engine-lab-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .engine-lab-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .engine-lab-lead {
+    max-width: 36rem;
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--color-foreground) 50%, transparent);
+  }
+
+  .engine-lab-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .engine-lab-grid {
+      grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .engine-lab-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.875rem;
+    background-color: var(--color-card);
+    border: 1px solid
+      color-mix(in srgb, var(--color-foreground) 10%, transparent);
+    border-radius: calc(16px * var(--corner-scale, 1));
+  }
+
+  .engine-lab-panel-title {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: color-mix(in srgb, var(--color-foreground) 45%, transparent);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .engine-lab-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .engine-lab-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-foreground);
+    cursor: pointer;
+    background-color: color-mix(
+      in srgb,
+      var(--color-foreground) 8%,
+      transparent
+    );
+    border: 1px solid
+      color-mix(in srgb, var(--color-foreground) 12%, transparent);
+    border-radius: calc(10px * var(--corner-scale, 1));
+  }
+
+  .engine-lab-button-muted {
+    color: color-mix(in srgb, var(--color-foreground) 65%, transparent);
+    background-color: transparent;
+  }
+
+  .engine-lab-status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin: 0;
+    font-size: 0.75rem;
+  }
+
+  .engine-lab-status-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .engine-lab-status-row dt {
+    margin: 0;
+    color: color-mix(in srgb, var(--color-foreground) 50%, transparent);
+  }
+
+  .engine-lab-status-row dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--color-foreground);
+  }
+
+  .engine-lab-log {
+    min-height: 8rem;
+    max-height: 14rem;
+    padding: 0.5rem 0.625rem;
+    margin: 0;
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    line-height: 1.45;
+    color: color-mix(in srgb, var(--color-foreground) 72%, transparent);
+    white-space: pre-wrap;
+    background-color: color-mix(
+      in srgb,
+      var(--color-foreground) 4%,
+      transparent
+    );
+    border: 1px solid
+      color-mix(in srgb, var(--color-foreground) 8%, transparent);
+    border-radius: calc(10px * var(--corner-scale, 1));
+  }
+
+  .engine-lab-demos {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .engine-lab-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.875rem;
+    background-color: color-mix(
+      in srgb,
+      var(--color-foreground) 2%,
+      transparent
+    );
+    border: 1px solid
+      color-mix(in srgb, var(--color-foreground) 10%, transparent);
+    border-radius: calc(16px * var(--corner-scale, 1));
+  }
+
+  .engine-lab-section-title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
+  .engine-lab-section-note {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: color-mix(in srgb, var(--color-foreground) 50%, transparent);
+  }
+
+  .engine-lab-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .engine-lab-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    align-items: center;
+    margin: 0;
+  }
+
+  .engine-lab-figure figcaption {
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, var(--color-foreground) 45%, transparent);
+  }
+
+  .engine-lab-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 7rem;
+  }
+
+  .engine-lab-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 14rem;
+    padding: 0.75rem;
+    overflow: auto;
+    background-color: var(--color-card);
+    border: 1px solid
+      color-mix(in srgb, var(--color-foreground) 10%, transparent);
+    border-radius: calc(12px * var(--corner-scale, 1));
+  }
+
+  .engine-lab-scroll-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0;
+  }
+
+  .engine-lab-scroll-item figcaption {
+    width: 1.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, var(--color-foreground) 40%, transparent);
+  }
+
+  .lab-block {
+    flex-shrink: 0;
+    --corner-shape: squircle;
+    corner-shape: squircle;
+    width: 4rem;
+    height: 4rem;
+    background-color: var(--color-default);
+    border-radius: calc(28px * var(--corner-scale, 1));
+  }
+
+  .lab-hover-border {
+    border: 2px solid
+      color-mix(in srgb, var(--color-foreground) 20%, transparent);
+  }
+
+  .lab-hover-border:hover {
+    border-width: 4px;
+  }
+
+  .lab-hover-transition {
+    transition: border-width 0.35s ease;
+  }
+
+  .lab-anim-size {
+    animation: lab-anim-size 2.4s ease-in-out infinite;
+  }
+
+  @keyframes lab-anim-size {
+    0%,
+    100% {
+      width: 3rem;
+      height: 3rem;
+    }
+
+    50% {
+      width: 5rem;
+      height: 5rem;
+    }
+  }
+
+  .lab-layer-shadow {
+    box-shadow: 0 8px 20px var(--theme-shadow);
+  }
+
+  .lab-layer-outline {
+    outline: 2px solid
+      color-mix(in srgb, var(--color-foreground) 25%, transparent);
+    outline-offset: 5px;
+  }
+
+  .lab-shape-squircle {
+    --corner-shape: squircle;
+    corner-shape: squircle;
+  }
+
+  .lab-shape-scoop {
+    --corner-shape: scoop;
+    corner-shape: scoop;
+  }
+
+  .lab-shape-notch {
+    --corner-shape: notch;
+    corner-shape: notch;
+  }
+
   .ui-example {
     --corner-shape: squircle;
     corner-shape: squircle;

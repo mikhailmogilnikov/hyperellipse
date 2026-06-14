@@ -7,6 +7,8 @@ interface Props {
   class?: string;
   description?: string;
   image?: string;
+  noindex?: boolean;
+  registerEngine?: boolean;
   title?: string;
 }
 
@@ -20,6 +22,8 @@ const {
   title = "Hyperellipse",
   description = siteDescription,
   image = "/og.png",
+  noindex = false,
+  registerEngine = true,
   class: className,
 } = Astro.props;
 
@@ -109,8 +113,12 @@ const structuredData = {
       content="CSS, polyfill, squircles, superellipses, scoops, notches, browser, frontend, framework, SSR, open-source"
     >
     <meta name="author" content="Mikhail Mogilnikov">
-    <meta name="robots" content="index, follow">
-    <meta name="googlebot" content="index, follow">
+    {noindex ? (
+      <meta content="noindex, nofollow" name="robots" />
+    ) : (
+      <meta content="index, follow" name="robots" />
+    )}
+    {!noindex && <meta content="index, follow" name="googlebot" />}
     <script
       is:inline
       type="application/ld+json"
@@ -126,10 +134,10 @@ const structuredData = {
     <a class="skip-link" href="#main-content">Skip to content</a>
     <slot />
     <Analytics />
-    <script>
-      import { registerHyperellipse } from "hyperellipse";
-
-      registerHyperellipse();
-    </script>
+    {registerEngine ? (
+      <script>
+        import "../lib/register-engine.ts";
+      </script>
+    ) : null}
   </body>
 </html>

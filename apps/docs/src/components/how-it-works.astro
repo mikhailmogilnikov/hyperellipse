@@ -48,7 +48,7 @@ const fallbackSteps = [
   },
   {
     description:
-      "MutationObserver rescans when stylesheets or attributes change. Pointer enter/leave on the element and its ancestors picks up :hover (including parent selectors); focusin/focusout picks up :focus. transitionrun and transitionend catch the start and end of CSS transitions. Size-only resizes reuse cached geometry without re-reading computed styles.",
+      "MutationObserver rescans when stylesheets or attributes change. Pointer enter/leave on the element and its ancestors picks up :hover (including parent selectors); focusin/focusout picks up :focus. transitionrun and transitionend catch the start and end of CSS transitions. A shared IntersectionObserver skips off-screen elements until they enter the viewport. Size-only resizes reuse cached geometry without re-reading computed styles.",
     title: "6. Watch",
   },
 ] as const;

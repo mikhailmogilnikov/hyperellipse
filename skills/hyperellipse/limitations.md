@@ -25,7 +25,7 @@ When `box-shadow` or `outline` are present, the element switches to **layer mode
 
 ## Performance
 
-One shared `ResizeObserver` + `MutationObserver` for all instances, batched read/write per animation frame, keyed caching (no DOM writes unless output changed). Size-only updates skip computed-style re-reads.
+One shared `ResizeObserver` + `MutationObserver` for all instances, batched read/write per animation frame, keyed caching (no DOM writes unless output changed). Size-only updates skip computed-style re-reads. A shared `IntersectionObserver` defers work for off-screen elements until they enter the viewport.
 
 ## `--corner-scale` tuning
 
