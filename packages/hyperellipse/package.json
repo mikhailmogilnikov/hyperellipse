@@ -1,7 +1,7 @@
 {
   "schema": "https://json.schemastore.org/package",
   "name": "hyperellipse",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Transparent polyfill for CSS corner-shape — squircles, superellipses, scoops, notches, and per-corner mixes",
   "type": "module",
   "author": "Mikhail Mogilnikov",

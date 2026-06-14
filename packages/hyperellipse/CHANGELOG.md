@@ -1,5 +1,11 @@
 # hyperellipse
 
+## 1.0.2
+
+### Patch Changes
+
+- Implement curve-aligned offset contours per css-borders-4 §3.9.4. Border rings now use a filled band between outer and inner contours instead of a centered stroke, fixing inward bleed on concave corners (scoop, notch). Outlines render via outward dilation masks with miter joins, matching native sharp concave-corner miters and eliminating seams where the outline touches the border.
+
 ## 1.0.1
 
 ### Patch Changes
