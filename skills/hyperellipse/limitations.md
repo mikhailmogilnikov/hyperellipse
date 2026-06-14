@@ -20,7 +20,7 @@ When `box-shadow` or `outline` are present, the element switches to **layer mode
 - In layer mode child content is not clipped to the shape
 - `:hover`-only style changes without transitions are not observed; call `refresh()` for other dynamic updates
 - `--corner-shape` does not inherit — set on the element itself
-- Animating `corner-shape` is not supported in the fallback
+- Animating `corner-shape`, `border-radius`, `box-shadow`, or `outline` in keyframes is not tracked frame-by-frame in the fallback — only size (`width` / `height`) animates smoothly
 
 ## Performance
 

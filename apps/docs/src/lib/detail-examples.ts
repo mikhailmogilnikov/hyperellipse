@@ -3,10 +3,12 @@ export interface DetailExample {
   figureClass?: string;
   label: string;
   previewClass: string;
+  previewWrapper?: "stage";
 }
 
 export interface DetailExampleGroup {
   examples: DetailExample[];
+  note?: string;
   title: string;
 }
 
@@ -74,6 +76,33 @@ export const detailExampleGroups: DetailExampleGroup[] = [
         caption: "Pill",
         label: "border-radius: 50%",
         previewClass: "detail-example detail-example-deco-pill",
+      },
+    ],
+  },
+  {
+    title: "Animations",
+    note: "In the Safari / Firefox fallback, only size (width / height) is tracked during animation. Other property keyframes are deliberately ignored for performance reasons.",
+    examples: [
+      {
+        caption: "Size + border",
+        label: "width/height · border 2px",
+        previewWrapper: "stage",
+        previewClass:
+          "detail-example-anim detail-example-anim-size detail-example-anim-deco-border",
+      },
+      {
+        caption: "Size + shadow",
+        label: "width/height · box-shadow",
+        previewWrapper: "stage",
+        previewClass:
+          "detail-example-anim detail-example-anim-stretch detail-example-anim-deco-shadow",
+      },
+      {
+        caption: "Size + outline",
+        label: "width/height · outline",
+        previewWrapper: "stage",
+        previewClass:
+          "detail-example-anim detail-example-anim-size detail-example-anim-deco-outline",
       },
     ],
   },

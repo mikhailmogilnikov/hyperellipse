@@ -133,6 +133,6 @@ controller.destroy(); // tear down
 - Dashed/dotted/per-side borders render as a uniform solid ring
 - Layer mode + background images/gradients: corners may stick out (solid colors OK)
 - Layer mode: children are not clipped to the shape (`overflow: hidden` clips to rect)
-- Animating `corner-shape` is not supported in the fallback
+- Animating `corner-shape`, `border-radius`, `box-shadow`, or `outline` in keyframes is not tracked frame-by-frame in the fallback — only size (`width` / `height`) animates smoothly
 
 For rendering strategy details and performance notes, see [limitations.md](limitations.md).

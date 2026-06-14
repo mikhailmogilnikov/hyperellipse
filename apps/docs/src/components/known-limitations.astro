@@ -40,8 +40,8 @@ const rows = [
   },
   {
     description:
-      "Animating corner-shape itself is not supported in the Safari / Firefox fallback.",
-    title: "corner-shape animation",
+      "corner-shape, border-radius, box-shadow, and outline keyframes are not tracked frame-by-frame in the fallback. Size changes (width / height) animate smoothly via ResizeObserver.",
+    title: "CSS keyframe animations",
   },
 ] as const;
 ---
