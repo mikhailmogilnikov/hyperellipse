@@ -1,5 +1,11 @@
 # hyperellipse
 
+## 1.0.3
+
+### Patch Changes
+
+- Suppress native `border-color`, `outline-color`, and `box-shadow` synchronously while SVG data URIs decode so author style updates do not flash for a frame. Force layout before activating pseudo-layer host attributes so custom-property insets resolve before `::before`/`::after` paint, fixing one-frame outline corners outside the box.
+
 ## 1.0.2
 
 ### Patch Changes

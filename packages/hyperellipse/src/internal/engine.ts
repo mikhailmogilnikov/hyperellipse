@@ -47,6 +47,17 @@ const createEntry = (): Entry => ({
 /** Upper bound for the decoded-URI memo before it resets. */
 const DECODED_CACHE_LIMIT = 256;
 
+/**
+ * Inline props that hide native paint replaced by SVG layers. Applied
+ * synchronously before async image decode so author `border` / `outline` /
+ * `box-shadow` updates do not flash for a frame.
+ */
+const NATIVE_SUPPRESSIONS = [
+  "border-color",
+  "outline-color",
+  "box-shadow",
+] as const;
+
 const isValidSelector = (doc: Document, selector: string): boolean => {
   try {
     doc.querySelector(selector);
@@ -176,6 +187,29 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     entry.hostAttr = "";
   };
 
+  /** Hides native border/outline/shadow while SVG data URIs decode. */
+  const applyNativeSuppressions = (
+    element: HTMLElement,
+    entry: Entry,
+    target: RenderTarget
+  ): void => {
+    if (target === CLEAR_TARGET) {
+      return;
+    }
+    let changed = false;
+    for (const prop of NATIVE_SUPPRESSIONS) {
+      const value = target.styles[prop];
+      if (value !== undefined && entry.applied[prop] !== value) {
+        element.style.setProperty(prop, value);
+        entry.applied[prop] = value;
+        changed = true;
+      }
+    }
+    if (changed) {
+      entry.snapshot = element.getAttribute("style") ?? "";
+    }
+  };
+
   const applyTarget = (
     element: HTMLElement,
     entry: Entry,
@@ -198,14 +232,19 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     for (const [prop, value] of Object.entries(target.styles)) {
       element.style.setProperty(prop, value);
     }
-    if (target.hostAttr !== entry.hostAttr) {
+    const hostChanging = target.hostAttr !== entry.hostAttr;
+    if (hostChanging) {
+      // Custom properties must resolve on the host before `::before` /
+      // `::after` activate — otherwise inset/image vars fall back to 0 /
+      // none for one frame and outline corners paint outside the box.
       if (target.hostAttr) {
+        element.getBoundingClientRect();
         element.setAttribute(HOST_ATTR, target.hostAttr);
       } else {
         element.removeAttribute(HOST_ATTR);
       }
     }
-    entry.applied = target.styles;
+    entry.applied = { ...target.styles };
     entry.key = target.key;
     entry.hostAttr = target.hostAttr;
     entry.snapshot = element.getAttribute("style") ?? "";
@@ -247,6 +286,9 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       return;
     }
     const pending = target.images.filter((uri) => !decodedImages.has(uri));
+    if (target !== CLEAR_TARGET && pending.length > 0) {
+      applyNativeSuppressions(element, entry, target);
+    }
     if (target === CLEAR_TARGET || pending.length === 0) {
       applyTarget(element, entry, target);
       return;
