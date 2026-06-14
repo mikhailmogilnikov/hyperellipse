@@ -36,3 +36,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Agent skills (installed by `npx skills add`; source lives in skills/)
+.agents/
