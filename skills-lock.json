@@ -2,8 +2,9 @@
   "version": 1,
   "skills": {
     "hyperellipse": {
-      "source": "/Users/mikhailmogilnikov/dev/web/projects/personal/libraries/hyperellipse",
-      "sourceType": "local",
+      "source": "mikhailmogilnikov/hyperellipse",
+      "sourceType": "github",
+      "skillPath": "skills/hyperellipse/SKILL.md",
       "computedHash": "a2e97773b8218a131864880ba9094516b4727f0579bc5c670705da8b7c4a8143"
     }
   }

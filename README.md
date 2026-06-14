@@ -10,6 +10,7 @@
 
 [![npm version](https://img.shields.io/npm/v/hyperellipse.svg)](https://www.npmjs.com/package/hyperellipse)
 [![CI](https://github.com/mikhailmogilnikov/hyperellipse/actions/workflows/ci.yml/badge.svg)](https://github.com/mikhailmogilnikov/hyperellipse/actions/workflows/ci.yml)
+[![skills.sh](https://skills.sh/b/mikhailmogilnikov/hyperellipse)](https://skills.sh/mikhailmogilnikov/hyperellipse)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 **A transparent polyfill for CSS [`corner-shape`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/corner-shape)** — squircles, superellipses, scoops, notches, and per-corner mixes.
@@ -146,6 +147,16 @@ Full API notes, rendering strategies, limitations, and performance details live 
 | Chrome / native `corner-shape` | Injects `corner-shape: var(--corner-shape, round)` via `@property` bridge |
 | Safari / Firefox | Scans stylesheets for `--corner-shape`, renders with `clip-path` / SVG layers |
 | SSR | `--corner-scale` CSS snippet softens corners before JS loads |
+
+## Agent skill
+
+An [Agent Skill](https://www.skills.sh/docs) ships with this repo so coding agents integrate hyperellipse correctly (SSR snippet, API, limitations). Works with any agent on [skills.sh](https://skills.sh/) — Cursor, Claude Code, Codex, GitHub Copilot, Windsurf, and others.
+
+```bash
+npx skills add mikhailmogilnikov/hyperellipse@hyperellipse -y
+```
+
+Source: [`skills/hyperellipse/SKILL.md`](./skills/hyperellipse/SKILL.md)
 
 ## Documentation site
 
