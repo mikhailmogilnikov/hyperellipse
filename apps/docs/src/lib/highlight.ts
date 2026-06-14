@@ -28,18 +28,16 @@ export interface CodeTab {
   lang: HighlightLanguage;
 }
 
-let highlighter: HighlighterCore | undefined;
+let highlighterPromise: Promise<HighlighterCore> | undefined;
 
-const getHighlighter = async () => {
-  if (!highlighter) {
-    highlighter = await createHighlighterCore({
-      engine: createJavaScriptRegexEngine(),
-      langs: [astro, css, html, shell, svelte, tsx, typescript, vue],
-      themes: [githubLight, githubDark],
-    });
-  }
+const getHighlighter = () => {
+  highlighterPromise ??= createHighlighterCore({
+    engine: createJavaScriptRegexEngine(),
+    langs: [astro, css, html, shell, svelte, tsx, typescript, vue],
+    themes: [githubLight, githubDark],
+  });
 
-  return highlighter;
+  return highlighterPromise;
 };
 
 export const highlightCode = async (code: string, lang: HighlightLanguage) => {
