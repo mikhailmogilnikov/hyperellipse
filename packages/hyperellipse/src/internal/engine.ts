@@ -525,7 +525,7 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     }
   });
 
-  const handleTransitionEnd = (event: Event): void => {
+  const handleTransitionLifecycle = (event: Event): void => {
     const target = event.target;
     if (target instanceof HTMLElement && tracked.has(target)) {
       markDirty(target);
@@ -567,8 +567,9 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       attributes: true,
       attributeFilter: ["class", "style", "data-corner-shape"],
     });
-    doc.addEventListener("transitionend", handleTransitionEnd, true);
-    doc.addEventListener("animationend", handleTransitionEnd, true);
+    doc.addEventListener("transitionrun", handleTransitionLifecycle, true);
+    doc.addEventListener("transitionend", handleTransitionLifecycle, true);
+    doc.addEventListener("animationend", handleTransitionLifecycle, true);
     doc.addEventListener("focusin", handleFocusChange, true);
     doc.addEventListener("focusout", handleFocusChange, true);
     doc.defaultView?.addEventListener("pageshow", handlePageShow);
@@ -594,8 +595,9 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
       cancelAnimationFrame(rafId);
       mutationObserver.disconnect();
       resizeObserver.disconnect();
-      doc.removeEventListener("transitionend", handleTransitionEnd, true);
-      doc.removeEventListener("animationend", handleTransitionEnd, true);
+      doc.removeEventListener("transitionrun", handleTransitionLifecycle, true);
+      doc.removeEventListener("transitionend", handleTransitionLifecycle, true);
+      doc.removeEventListener("animationend", handleTransitionLifecycle, true);
       doc.removeEventListener("focusin", handleFocusChange, true);
       doc.removeEventListener("focusout", handleFocusChange, true);
       doc.defaultView?.removeEventListener("pageshow", handlePageShow);

@@ -35,7 +35,7 @@ const rows = [
   },
   {
     description:
-      "border-radius, box-shadow, and outline transitions are not interpolated frame-by-frame — the shape updates on state change and at transitionend. opacity and transform always transition natively. background-color transitions smoothly on solid fills only (no shadow or outline); in layer mode the fill is baked into SVG and jumps. Size (width / height) transitions animate smoothly via ResizeObserver.",
+      "border-radius, box-shadow, and outline transitions are not interpolated frame-by-frame — the shape updates on state change, at transitionrun, and at transitionend. opacity and transform always transition natively. background-color transitions smoothly on solid fills only (no shadow or outline); in layer mode the fill is baked into SVG and jumps. Size (width / height) transitions animate smoothly via ResizeObserver.",
     title: "CSS transitions",
   },
   {

@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - Observe `:hover` in the Safari / Firefox fallback via `mouseenter` / `mouseleave` on tracked elements and their ancestors.
+- Listen for `transitionrun` and `transitionend` on tracked elements so CSS transitions on shaped properties update at the start and end of the animation.
 
 ## 1.0.3
 

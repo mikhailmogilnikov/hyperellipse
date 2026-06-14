@@ -20,7 +20,7 @@ When `box-shadow` or `outline` are present, the element switches to **layer mode
 - In layer mode child content is not clipped to the shape
 - `:hover` and `:focus` work in the fallback; pointer enter/leave and focus events on the element and its ancestors cover parent `:hover` selectors too — call `refresh()` for other imperative updates
 - `--corner-shape` does not inherit — set on the element itself
-- `border-radius`, `box-shadow`, and `outline` transitions are not interpolated frame-by-frame — the shape updates on state change and at `transitionend`. `opacity` and `transform` always transition natively. `background-color` transitions smoothly on solid fills only (no shadow or outline); in layer mode the fill is baked into SVG and jumps. Size (`width` / `height`) transitions animate smoothly via `ResizeObserver`
+- `border-radius`, `box-shadow`, and `outline` transitions are not interpolated frame-by-frame — the shape updates on state change, at `transitionrun`, and at `transitionend`. `opacity` and `transform` always transition natively. `background-color` transitions smoothly on solid fills only (no shadow or outline); in layer mode the fill is baked into SVG and jumps. Size (`width` / `height`) transitions animate smoothly via `ResizeObserver`
 - Animating `corner-shape`, `border-radius`, `box-shadow`, or `outline` in keyframes is not tracked frame-by-frame in the fallback — only size (`width` / `height`) animates smoothly
 
 ## Performance
