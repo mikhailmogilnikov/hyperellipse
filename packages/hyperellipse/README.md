@@ -108,9 +108,12 @@ How it behaves:
 
 - **Native browsers**: `--corner-scale` is unset → factor `1` → full radius, native squircle. Zero flash.
 - **Fallback browsers, before JS**: the `@supports not` block activates at first paint → corners render at ×0.6 radius, closely matching the perceived roundness of the future squircle. No layout shift, no JS timing involved.
-- **Fallback browsers, after init**: while reading element styles the engine force-overrides `--corner-scale: 1`, so the squircle geometry is computed from the **full** radius — identical to Chrome.
+- **Fallback browsers, after init**: during each read phase the engine temporarily forces `--corner-scale: 1` so squircle geometry is computed from the **full** radius — identical to Chrome.
+- **Runtime shape off**: when `--corner-shape` is removed, the engine sets inline `--corner-scale: 1` so round mode matches Chrome at full radius (not ×0.6 from the SSR snippet).
 
 `0.6` is the perceptual equivalence factor between a circle and a `squircle` (matching corner cut areas). Tune it globally or per element by overriding `--corner-scale` inside the `@supports not` block (e.g. `0.5` for `superellipse(3+)`, `0.7` for softer shapes).
+
+For design systems that apply `var(--corner-scale)` to round tokens globally, co-locate `--corner-scale: 0.6` in the same rule as `--corner-shape` instead of relying on `:root` alone.
 
 ### Automatic pending reduction (secondary)
 

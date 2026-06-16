@@ -33,7 +33,7 @@ const fallbackSteps = [
   },
   {
     description:
-      "Batch-reads computed styles once per animation frame. Temporarily forces --corner-scale: 1 so geometry uses the full radius, not the SSR reduction.",
+      "Batch-reads computed styles once per animation frame. Temporarily forces --corner-scale: 1 for the read phase so geometry uses the full radius, not the SSR reduction.",
     title: "3. Read",
   },
   {
@@ -43,7 +43,7 @@ const fallbackSteps = [
   },
   {
     description:
-      "Solid fills get clip-path: path(...). Borders, shadows, or outlines switch to layer mode — SVG rings and blurred shapes on ::before / ::after.",
+      "Solid fills get clip-path: path(...). Borders, shadows, or outlines switch to layer mode — SVG rings and blurred shapes on ::before / ::after. When --corner-shape is removed, inline --corner-scale: 1 restores full border-radius in fallback browsers.",
     title: "5. Apply",
   },
   {

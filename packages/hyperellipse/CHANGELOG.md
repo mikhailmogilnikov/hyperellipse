@@ -1,5 +1,11 @@
 # hyperellipse
 
+## 1.0.5
+
+### Patch Changes
+
+- Set inline `--corner-scale: 1` when `--corner-shape` is removed at runtime so round mode matches Chrome in Safari and Firefox instead of staying at the SSR pending ×0.6.
+
 ## 1.0.4
 
 ### Patch Changes

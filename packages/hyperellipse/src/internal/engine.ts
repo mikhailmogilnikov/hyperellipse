@@ -266,6 +266,12 @@ export const createEngine = (doc: Document, options: EngineOptions): Engine => {
     entry.applied = {};
     entry.key = "";
     entry.hostAttr = "";
+    // Restore full border-radius when shape is removed — :root pending
+    // `--corner-scale: 0.6` would otherwise keep round mode at ×0.6 in
+    // fallback browsers.
+    element.style.setProperty(CORNER_SCALE_VAR, "1");
+    entry.applied[CORNER_SCALE_VAR] = "1";
+    entry.snapshot = element.getAttribute("style") ?? "";
   };
 
   /** Hides native border/outline/shadow while SVG data URIs decode. */

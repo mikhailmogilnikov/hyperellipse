@@ -69,7 +69,7 @@ Squircles look less round than circles at the same radius. Scale radius in unsup
 */
 ```
 
-Prefer this CSS snippet over relying on JS-only `pendingRadiusScale`. The engine force-overrides `--corner-scale: 1` per element after init so geometry uses the full radius.
+Prefer this CSS snippet over relying on JS-only `pendingRadiusScale`. During each read phase the engine temporarily forces `--corner-scale: 1` so geometry uses the full radius. When `--corner-shape` is removed at runtime, the engine sets inline `--corner-scale: 1` so round mode matches Chrome.
 
 ### Supported values
 
